@@ -135,7 +135,7 @@ end
 
 new_table("lrl_agl", 120)
 new_table("lrl_landingG", 10)
-new_table("lrl_gearWeight", 10)
+new_table("lrl_gearForce", 10)
 
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
@@ -147,7 +147,7 @@ lrl_logDisplayOn = true
 lrl_popupState = lrl_STEERINGDN
 lrl_landingRate = 1.0
 lrl_landingG = 1.0
-lrl_gearWeight = lrl_Weight
+lrl_gearLbF = lrl_Weight
 lrl_floatTimer = 0
 lrl_floatFinal = 0
 lrl_noseRate = nil
@@ -174,8 +174,11 @@ function lrl_postLandingRate()
 end
 
 function lrl_populatePopupStats()
-	lrl_popupText[1] = string.format("Vertical Speed %.2fFPM  %.2fG Gear Force %.2flb", 
-	        lrl_landingRate, lrl_landingG, lrl_gearWeight)
+	lrl_popupText[1] = string.format("Vertical Speed %.2fFPM  %.2fG Gear Force %.2f", 
+	        lrl_landingRate, lrl_landingG, lrl_gearLbF)
+
+
+
 	if lrl_qAdj == nil then
 		-- Grade the flare
             --	HOW FLAREdmundS ARE GRADED
@@ -204,7 +207,7 @@ function lrl_populatePopupStats()
 			end
 		end
 		lrl_popupText[2] = flare .. " flare"
-		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gearWeight) -- EdmundS
+		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gearLbF) -- EdmundS
 	end
 end
 
@@ -241,8 +244,8 @@ function lrl_updateLandingResult()
 			    tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
 		-- EdmundS			    
 		draw_string_Helvetica_18(100, 120,
-			string.format("Total Weight %.1f| Weight on Gear: %.1f | G's on Gear: %.1f | Max Gear Weight: %.1f", 
-			    lrl_Weight, lrl_YN / 4.4482216153, (lrl_YN / 4.4482216153)/(lrl_Weight*2.2), (calcMax_lrl_gearWeight() or .01) ))
+			string.format("Total Weight %.1f| Force on Gear: %.1f lbf | G's on Gear: %.1f | Max Gear force: %.1f", 
+			    lrl_Weight, lrl_YN / 4.4482216153, (lrl_YN / 4.4482216153)/(lrl_Weight*2.2), (calcMax_lrl_gearForce() or .01) ))
 		--			    
     	draw_string_Helvetica_18(100, 100,
 			string.format("agl: %.2f  VSI: %d | DisplayOn: %s   lrl_popupState: %d", lrl_agl, lrl_vertfpm,
@@ -266,12 +269,12 @@ function lrl_updateLandingResult()
 		if #values_axis_lrl_agl ~= 0 then -- Reset recorders
 			init_lrl_agl()
 			init_lrl_landingG()
-			init_lrl_gearWeight()
+			init_lrl_gearForce()
 		end
 		lrl_landingRate = nil
 		lrl_landingG = nil
 		lrl_noseRate = nil
-		lrl_gearWeight = nil
+		lrl_gearLbF = nil
 		lrl_qAdj = nil
 		lrl_floatTimer = 0
 		lrl_floatFinal = 0
@@ -287,7 +290,7 @@ function lrl_updateLandingResult()
 	if lrl_boolSimPaused == 0 then
 		pushValue_lrl_agl(lrl_agl, lrl_localtime)
 		pushValue_lrl_landingG(lrl_gforce, lrl_localtime)
-		pushValue_lrl_gearWeight((lrl_YN / 4.4482216153), lrl_localtime)
+		pushValue_lrl_gearForce((lrl_YN / 4.4482216153), lrl_localtime)
 	end
 
 	-- BELOW 15M
@@ -306,7 +309,7 @@ function lrl_updateLandingResult()
 
 	-- ANY WHEEL DOWN AND STILL FLYING
 	-- If we're in an ARMED state, and we're transitioning from no wheels down to having wheels down,
-	-- then grab the ground speed from gVS, find the max lrl_gforce ang lrl_gearweight
+	-- then grab the ground speed from gVS, find the max lrl_gforce ang lrl_gearLbF
 	--   and populate our status and change to the LANDED state
 	--   so we can calculate the nose rate
 	if lrl_popupState == lrl_ARMED and (not lrl_logAnyWheel and lrl_boolOnGroundAny == 1) then
@@ -314,7 +317,7 @@ function lrl_updateLandingResult()
 		if lrl_landingRate == nil then
 			lrl_landingRate = gVS
 			lrl_landingG = calcMax_lrl_landingG()       -- EdmundS
-			lrl_gearWeight = calcMax_lrl_gearWeight()   -- EdmundS
+			lrl_gearLbF = calcMax_lrl_gearForce()   -- EdmundS
 		end
 		lrl_populatePopupStats()
 		lrl_popupState = lrl_LANDED
@@ -329,7 +332,7 @@ function lrl_updateLandingResult()
 		-- EdmundS
 		if(lrl_ReadMore < lrl_READAFTERLANDING) then 
 			lrl_landingG = calcMax_lrl_landingG()
-			lrl_gearWeight = calcMax_lrl_gearWeight()
+			lrl_gearLbF = calcMax_lrl_gearForce()
 			lrl_ReadMore = lrl_ReadMore + 1
 		    lrl_populatePopupStats()
 		end
