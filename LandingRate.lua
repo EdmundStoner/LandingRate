@@ -14,6 +14,8 @@ lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
 lrl_POSTRATE = true
 
+lrl_READAFTERLANDING = 1
+
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
 require("graphics")
 
@@ -45,12 +47,15 @@ if not SUPPORTS_FLOATING_WINDOWS then
 end
 -- erhardma
 
-lrl_ARMED = 0
+lrl_ARMED = 0lrl_YN
 lrl_LANDED = 1
 lrl_STEERINGDN = 2
 lrl_STANDBY = 3
 
-
+-- Table Classes 
+-- Variables = values_axis_tABLEnAME,ts_axis_tABLEnAME
+-- functions = init_tABLEnAME(), calcAvg_tABLEnAME(), calc_Max_tABLEnAME(), 
+--             calcDeviation_tABLEnAME(),calcTime_tABLEnAME(), pushValue_tABLEnAME(value, ts)
 function new_table(tn, samples)
     -- Add a class of a table
 	-- make samples an optional argument
@@ -128,21 +133,21 @@ function new_table(tn, samples)
 	assert(loadstring(code))()
 end
 
-new_table("lrl_agl", 20)
-new_table("lrl_landingG", 20)
-new_table("lrl_gearWeight", 20)
+new_table("lrl_agl", 120)
+new_table("lrl_landingG", 10)
+new_table("lrl_gearForce", 10)
 
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
 
 lrl_popupText = { "Landing Rate for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "(c)2020-2022 Dan Berry", 
-	"Mods by William R Good (SparkerInVR)[erhardma] & EdmundStoner","VERSION 1.83.9" }
+	"","VERSION 1.83.9" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
 lrl_popupState = lrl_STEERINGDN
 lrl_landingRate = 1.0
 lrl_landingG = 1.0
-lrl_gearWeight = lrl_Weight
+lrl_gearForce = lrl_Weight
 lrl_floatTimer = 0
 lrl_floatFinal = 0
 lrl_noseRate = nil
@@ -169,8 +174,8 @@ function lrl_postLandingRate()
 end
 
 function lrl_populatePopupStats()
-	lrl_popupText[1] = string.format("Vertical Speed: %.2fFPM / %.2fG @ %.2fLbs", 
-	        lrl_landingRate, lrl_landingG, lrl_gearWeight)
+	lrl_popupText[1] = string.format("Vertical Speed %.2fFPM %.2fG's Gear Force %.2flb", 
+	        lrl_landingRate, lrl_landingG, lrl_gearForce)
 	if lrl_qAdj == nil then
 		-- Grade the flare
             --	HOW FLAREdmundS ARE GRADED
@@ -199,7 +204,7 @@ function lrl_populatePopupStats()
 			end
 		end
 		lrl_popupText[2] = flare .. " flare"
-		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gearWeight) -- EdmundS
+		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gearForce) -- EdmundS
 	end
 end
 
@@ -222,7 +227,6 @@ function lrl_updateLandingResult()
 	local aglTimeslice = calcTime_lrl_agl()
 	local aglMidpoint = lrl_agl - aglAvg
 	local gVS = (aglMidpoint / (aglTimeslice / 2)) * 196.85
-	butterball_gVS = gVS
 
 	-- Show debugging information
 	if lrl_DEBUG then
@@ -236,8 +240,8 @@ function lrl_updateLandingResult()
 			    tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
 		-- EdmundS			    
 		draw_string_Helvetica_18(100, 120,
-			string.format("Total Weight kg %.1f| Weight on Gear: %.1f | G's on Gear: %.1f | Max Gear Weight: %.1f", 
-			    lrl_Weight*2.2, (lrl_YN + lrl_ZN) / 4.448222, ((lrl_YN + lrl_ZN) / 4.448222)/(lrl_Weight*2.2), (calcMax_lrl_gearWeight() or .01) ))
+			string.format("Total Weight %.1f| Weight on Gear: %.1f | G's on Gear: %.1f | Max Gear Weight: %.1f", 
+			    lrl_Weight, lrl_YN / 4.4482216153, (lrl_YN / 4.4482216153)/(lrl_Weight*2.2), (calcMax_lrl_gearForce() or .01) ))
 		--			    
     	draw_string_Helvetica_18(100, 100,
 			string.format("agl: %.2f  VSI: %d | DisplayOn: %s   lrl_popupState: %d", lrl_agl, lrl_vertfpm,
@@ -261,18 +265,19 @@ function lrl_updateLandingResult()
 		if #values_axis_lrl_agl ~= 0 then -- Reset recorders
 			init_lrl_agl()
 			init_lrl_landingG()
-			init_lrl_gearWeight()
+			init_lrl_gearForce()
 		end
 		lrl_landingRate = nil
 		lrl_landingG = nil
 		lrl_noseRate = nil
-		lrl_gearWeight = nil
+		lrl_gearForce = nil
 		lrl_qAdj = nil
 		lrl_floatTimer = 0
 		lrl_floatFinal = 0
 		lrl_logDisplayOn = false
 		lrl_popupState = lrl_ARMED
 		lrl_popupText = {}
+		lrl_ReadMore = 0
 	end
 
 	-- NOT PAUSED
@@ -281,7 +286,7 @@ function lrl_updateLandingResult()
 	if lrl_boolSimPaused == 0 then
 		pushValue_lrl_agl(lrl_agl, lrl_localtime)
 		pushValue_lrl_landingG(lrl_gforce, lrl_localtime)
-		pushValue_lrl_gearWeight(((lrl_YN + lrl_ZN) / 4.448222), lrl_localtime)
+		pushValue_lrl_gearForce((lrl_YN / 4.4482216153), lrl_localtime)
 	end
 
 	-- BELOW 15M
@@ -300,7 +305,7 @@ function lrl_updateLandingResult()
 
 	-- ANY WHEEL DOWN AND STILL FLYING
 	-- If we're in an ARMED state, and we're transitioning from no wheels down to having wheels down,
-	-- then grab the ground speed from gVS and calculate the lrl_gforce avg
+	-- then grab the ground speed from gVS, find the max lrl_gforce ang lrl_gearForce
 	--   and populate our status and change to the LANDED state
 	--   so we can calculate the nose rate
 	if lrl_popupState == lrl_ARMED and (not lrl_logAnyWheel and lrl_boolOnGroundAny == 1) then
@@ -308,7 +313,7 @@ function lrl_updateLandingResult()
 		if lrl_landingRate == nil then
 			lrl_landingRate = gVS
 			lrl_landingG = calcMax_lrl_landingG()       -- EdmundS
-			lrl_gearWeight = calcMax_lrl_gearWeight()   -- EdmundS
+			lrl_gearForce = calcMax_lrl_gearForce()   -- EdmundS
 		end
 		lrl_populatePopupStats()
 		lrl_popupState = lrl_LANDED
@@ -319,13 +324,19 @@ function lrl_updateLandingResult()
 	--LANDED BUT NOT ALL WHEELS DOWN
 	-- If we have wing wheels down but not the nose wheel, give the pilot some feedback.
 	-- Otherwise, give the final nose rate and move onto the final STEERINGDN state.
-	if lrl_popupState == lrl_LANDED then --and lrl_logAnyWheel then
+	if lrl_popupState == lrl_LANDED and lrl_logAnyWheel then
+		-- EdmundS
+		if(lrl_ReadMore < lrl_READAFTERLANDING) then 
+			lrl_landingG = calcMax_lrl_landingG()
+			lrl_gearForce = calcMax_lrl_gearForce()
+			lrl_ReadMore = lrl_ReadMore + 1
+		    lrl_populatePopupStats()
+		end
+		--
 		if not lrl_logAllWheels then
 			-- Wing wheels down, inform the pilot
 			lrl_popupText[3] = "Slowly lower the steering"
-		end
-
-		if lrl_logAllWheels then
+		else  -- EdmundS
 			lrl_popupState = lrl_STEERINGDN
 		    lrl_populatePopupStats()
 			lrl_populatePopupStats2()
