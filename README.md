@@ -1,4 +1,5 @@
-# LandingRate
+# LandingRate BETA
+
 X-Plane 11/12 Landing rate plugin
 
 This is version 1.84 (2023-02-28) of the LandingRate FlyWithLua script, originally written by Dan Berry.
