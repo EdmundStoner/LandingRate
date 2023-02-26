@@ -79,10 +79,12 @@ function new_table(tn, samples)
 	code = code .. "end\n"
 	-- EdmundS
 	code = code .. "function calcMax_" .. tn .. "()\n"
-	code = code .. "    local max = 0\n"
+	code = code .. "    local max = 0.0001\n"
 	code = code .. "    if #values_axis_" .. tn .. " > 0 then\n"
 	code = code .. "        for i = " .. samples .. ", 1, -1 do\n"
-	code = code .. "            max = math.max(max,values_axis_" .. tn .. "[i])\n"
+	code = code .. "            if values_axis_" .. tn .. "[i] then\n"
+	code = code .. "                max = math.max(max,values_axis_" .. tn .. "[i])\n"
+	code = code .. "             end\n"
 	code = code .. "        end\n"
 	code = code .. "    end\n"
 	code = code .. "    return max\n"
@@ -133,8 +135,8 @@ new_table("lrl_gearWeight", 20)
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
 
-lrl_popupText = { "", "Landing Rate for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "(c)2020-2022 Dan Berry",
-	"VERSION 1.83.2" }
+lrl_popupText = { "Landing Rate for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "(c)2020-2022 Dan Berry", 
+	"Mods by [erhardma] & EdmundStoner","VERSION 1.83.9" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
 lrl_popupState = lrl_STEERINGDN
@@ -232,11 +234,11 @@ function lrl_updateLandingResult()
 		draw_string_Helvetica_18(100, 140,
 			string.format("lrl_landingRate: %s | lrl_noseRate: %s | lrl_floatFinal: %s", 
 			    tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
--- EdmundS			    
+		-- EdmundS			    
 		draw_string_Helvetica_18(100, 120,
-			string.format("Total Weight kg %.2f| Weight on Gear: %.2f | G's on Gear: %.2f ", 
-			    lrl_Weight*2.2, (lrl_YN + lrl_ZN) / 4.448222, ((lrl_YN + lrl_ZN) / 4.448222)/(lrl_Weight*2.2) ))
---			    
+			string.format("Total Weight kg %.1f| Weight on Gear: %.1f | G's on Gear: %.1f | Max Gear Weight: %.1f", 
+			    lrl_Weight*2.2, (lrl_YN + lrl_ZN) / 4.448222, ((lrl_YN + lrl_ZN) / 4.448222)/(lrl_Weight*2.2), (calcMax_lrl_gearWeight() or .01) ))
+		--			    
     	draw_string_Helvetica_18(100, 100,
 			string.format("agl: %.2f  VSI: %d | DisplayOn: %s   lrl_popupState: %d", lrl_agl, lrl_vertfpm,
 				tostring(lrl_logDisplayOn), lrl_popupState))
@@ -499,4 +501,4 @@ do_every_draw('lrl_loopCallback()')
 
 do_often("lrl_checkForVR()")
 
-add_macro("Landing Rate: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "deactivate")
+add_macro("Landing Rate: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "activate")
