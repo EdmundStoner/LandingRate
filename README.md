@@ -7,3 +7,4 @@ Added VR support by William R Good (SparkerInVR) based on initial work by Erhard
 
 I added a gear force Indicator and worked on making the G's Indicator a bit more accurate
 
+To Get a copy click on the code and click download zip
