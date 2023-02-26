@@ -406,7 +406,7 @@ function lrl_loopCallback()
 	if (os.clock() < lrl_showUntil and lrl_logDisplayOn) then
 		if (lrl_boolInReplay == 0) then -- only show lrl_popupTexts live, not in replay
 			if lrl_vr_enabled ~= 0 then lrl_vr_showWindow = 1 end -- erhardma
-			local boxWidth = lrl_FONTSIZE * 31      -- EdmundS
+			local boxWidth = lrl_FONTSIZE * 35      -- EdmundS
 			local boxHeight = lrl_FONTSIZE * 6.3
 			local yspacing = lrl_FONTSIZE * 1.23
 			local yoffset = yspacing * 4
