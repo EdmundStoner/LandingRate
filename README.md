@@ -1,11 +1,11 @@
-# LandingRateMx
+# LandingRateMx Alpha
 
-X-Plane 11/12 Landing rate plugin
+## This is a work in progress!
 
-This is version 1 (2023-02-28) of the LandingRateMx FlyWithLua script, originally written by Dan Berry.
+X-Plane 11/12 Landing rate plugin that I have modified to analyze the forces that Xplane datarefs provide while landing the craft
 
-Added VR support by William R Good (SparkerInVR) based on initial work by Erhardma
+This is version 1 (2023-02-28) of my LandingRateMx, FlyWithLua script, originally written by Dan Berry with added VR support by William R Good (SparkerInVR) based on initial work by Erhardma
 
-I added a gear force Indicator and worked on making the G's Indicator a bit more accurate
+I currently use a function to record and display the max G's that occur during a landing. 
 
-To Get a copy click on the code and click download zip
+To get a copy click [here](https://github.com/EdmundStoner/LandingRate.git)
