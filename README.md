@@ -1,8 +1,8 @@
-# LandingRate BETA
+# LandingRateMx BETA
 
 X-Plane 11/12 Landing rate plugin
 
-This is version 1.84 (2023-02-28) of the LandingRate FlyWithLua script, originally written by Dan Berry.
+This is version 1 (2023-02-28) of the LandingRateMx FlyWithLua script, originally written by Dan Berry.
 
 Added VR support by William R Good (SparkerInVR) based on initial work by Erhardma
 
