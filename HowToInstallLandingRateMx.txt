@@ -1,10 +1,10 @@
-This is version 1.84 (2023-02-28) of the LandingRate FlyWithLua script, written by Dan Berry.
+This is version 1 (2023-02-28) of the LandingRateMx FlyWithLua script, originally written by Dan Berry.
 Added VR support by William R Good (SparkerInVR) based on initial work by Erhardma
 Added Force Indicator and worked on making the G's Indicator a bit more accurate by EdmundStoner
 
 REQUIREMENTS
 ------------
-LandingRate *requires* that you have the FlyWithLua plugin for X-Plane installed.
+LandingRateMx *requires* that you have the FlyWithLua plugin for X-Plane installed.
 
 - The new versions are X-Plane 11 only and the binary is also in the download area of x-plane.org at:
   https://forums.x-plane.org/index.php?/files/file/38445-flywithlua-ng-next-generation-edition-for-x-plane-11-win-lin-mac/
@@ -17,7 +17,7 @@ LandingRate *requires* that you have the FlyWithLua plugin for X-Plane installed
 
 INSTALLATION
 ------------
-1. Drop the LandingRate.lua file into your <X-Plane>/Resources/Plugins/FlyWithLua/Scripts folder.
+1. Drop the LandingRateMx.lua file into your <X-Plane>/Resources/Plugins/FlyWithLua/Scripts folder.
 2. Either:
    a) restart X-Plane, or
    b) go the "Plugins" menu in X-Plane, select "FlyWithLua", and then "Reload all Lua script files"
@@ -32,7 +32,7 @@ Grab it by the top move bar and put it where you want and it will stay there.
 Using The Debug mode
 -----------------
 In the Menu Item click on
-Plugins/FlyWithLua/FlyWithLuaMacros/Landing Rate: Show Debug Info
+Plugins/FlyWithLua/FlyWithLuaMacros/Landing Rate Mx: Show Debug Info
 
 This will show updated G forces, landingRate, noseRate, floatFinal, 
 Weight on Gear, G's on Gear, Total Weight, agl, DisplayOn, 
