@@ -8,4 +8,4 @@ This is version 1 (2023-02-28) of my LandingRateMx, FlyWithLua script, originall
 
 I currently use a function to record and display the max G's that occur during a landing. 
 
-To get a copy click [here](https://github.com/EdmundStoner/LandingRate/archive/refs/heads/main.zip)
+To get a zip of this, click [here](https://github.com/EdmundStoner/LandingRate/archive/refs/heads/main.zip).
