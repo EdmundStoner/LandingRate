@@ -141,7 +141,7 @@ lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
 
 lrl_popupText = { "Landing Rate for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "(c)2020-2022 Dan Berry", 
-	"","VERSION 1.83.9" }
+	"","VERSION 1.84" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
 lrl_popupState = lrl_STEERINGDN
