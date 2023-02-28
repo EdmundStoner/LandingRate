@@ -1,4 +1,8 @@
-Change from original on 2023-2-28 
+Change on 2023-02-26
+    -- used the gear forces divided by the weight to generate the reading of G's
+    -- added after landing readings to make sure that each bounce is analyzed
+
+Change from original on 2023-2-25 
     -- after the aircraft is below 15M AGL 
         the Gforce dataref reading will be captured every frame until 
         xplane has determined that a wheel hit the ground
