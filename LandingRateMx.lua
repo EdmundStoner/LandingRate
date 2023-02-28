@@ -159,7 +159,7 @@ new_table("lrl_gearForce", 60)
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
 
-lrl_popupText = { "Landing Rate Max G for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "Mod of Dan Berry's code", 
+lrl_popupText = { "Landing Rate Max G for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "Mod of Dan Berry`s code", 
 	"ES VERSION 0.6", "EXPERIMENTAL" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
