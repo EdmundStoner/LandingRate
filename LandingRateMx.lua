@@ -262,7 +262,7 @@ function lrl_updateLandingResult()
 		-- EdmundS			    
 		draw_string_Helvetica_18(100, 120,
 			string.format("Total Weight %.1f| Force on Gear: %.1f lbf | G's Gear: %.2f | Max Gear force: %.1f", 
-			    lrl_Weight, lrl_YN / 4.4482216153, ((lrl_YN + lrl_ZN) / 10) (lrl_Weight), (calcMax_lrl_gearForce() or .01) ))
+			    lrl_Weight, lrl_YN / 4.4482216153, ((lrl_YN + lrl_ZN) / 10) / lrl_Weight, (calcMax_lrl_gearForce() or .01) ))
 		--			    
     		draw_string_Helvetica_18(100, 100,
 			string.format("agl: %.2f  VSI: %d | DisplayOn: %s   lrl_popupState: %d", lrl_agl, lrl_vertfpm,
