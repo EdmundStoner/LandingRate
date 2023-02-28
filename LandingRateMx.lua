@@ -14,7 +14,7 @@ lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
 lrl_POSTRATE = true
 
-lrl_READAFTERLANDING = 1
+lrl_READAFTERLANDING = 50
 
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
 require("graphics")
@@ -51,6 +51,12 @@ lrl_ARMED = 0
 lrl_LANDED = 1
 lrl_STEERINGDN = 2
 lrl_STANDBY = 3
+
+function write2log(fn,s)
+	io.output(io.open(fn, "a"))
+	io.write(s)
+	io.close()
+end
 
 -- Table Classes 
 -- Variables = values_axis_tABLEnAME,ts_axis_tABLEnAME
@@ -94,6 +100,18 @@ function new_table(tn, samples)
 	code = code .. "    end\n"
 	code = code .. "    return max\n"
 	code = code .. "end\n"
+	code = code .. "function csvStringOf_" .. tn .. "()\n"
+	code = code .. "    local str = ''\n"
+	code = code .. "    if #values_axis_" .. tn .. " > 0 then\n"
+	code = code .. "        for i = " .. samples .. ", 1, -1 do\n"
+	code = code .. "            str = string.format('{%.2f,%2f}', values_axis_" .. tn .. "[i], ts_axis_" .. tn .. "[i]) .. str\n"
+	code = code .. "            if i ~= 1 then\n"
+	code = code .. "            	str = ',' .. str\n"	
+	code = code .. "            end\n"
+	code = code .. "        end\n"
+	code = code .. "    end\n"
+	code = code .. "    return str\n"
+	code = code .. "end\n"
 	--
 	code = code .. "function calcDeviation_" .. tn .. "()\n"
 	code = code .. "    local prev\n"
@@ -129,19 +147,20 @@ function new_table(tn, samples)
 	code = code .. "    ts_axis_" .. tn .. "[1] = ts\n"
 	code = code .. "end\n"
 
+	--write2log("ClassObj.lua",code)
 	-- execute the code
 	assert(loadstring(code))()
 end
 
-new_table("lrl_agl", 120)
+new_table("lrl_agl", 20)
 new_table("lrl_landingG", 10)
-new_table("lrl_gearForce", 10)
+new_table("lrl_gearForce", 50)
 
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
 
-lrl_popupText = { "Landing Rate Mx for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "(c)2020-2022 Dan Berry", 
-	"ES VERSION 1", "EXPERIMENTAL" }
+lrl_popupText = { "Landing Rate Max G for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "(c)2020-2022 Dan Berry", 
+	"ES VERSION 1.x", "EXPERIMENTAL" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
 lrl_popupState = lrl_STEERINGDN
@@ -154,7 +173,7 @@ lrl_noseRate = nil
 
 function lrl_postLandingRateMx()
 	-- CSV format:
-	-- Timestamp, PLANE_ICAO, Landing Rate, Landing G-Force, Landing Nose Rotate Rate, Floating Time, Flare Rating
+	-- Timestamp, PLANE_ICAO, Landing Rate, Landing G-Force, Landing Nose Rotate Rate, Floating Time, Flare Rating,Force on Gear
 	local d = os.date("%Y-%m-%d %H:%M:%S")
 	local s
 	-- VR folks like the popup text being logged
@@ -176,8 +195,6 @@ end
 function lrl_populatePopupStats()
 	lrl_popupText[1] = string.format("Vertical Speed %.2fFPM  %.2fG Gear Force %.2f", 
 	        lrl_landingRate, lrl_landingG, lrl_gearLbF)
-
-
 
 	if lrl_qAdj == nil then
 		-- Grade the flare
@@ -207,31 +224,31 @@ function lrl_populatePopupStats()
 			end
 		end
 		lrl_popupText[2] = flare .. " flare"
-		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gearLbF) -- EdmundS
+		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gforce) -- EdmundS
 	end
 end
 
 function lrl_populatePopupStats2()
-	if lrl_noseRate == nil then lrl_noseRate = lrl_Q end
+	if lrl_noseRate == nil then 
+		lrl_noseRate = lrl_Q 
+	end
 	lrl_popupText[3] = string.format("Nose: %.2f deg/sec", lrl_noseRate)
-
 	if lrl_SHOW_TIMER then
 		lrl_popupText[3] = lrl_popupText[3] .. string.format(" | Float: %.2f secs", lrl_floatFinal)
 	end
-	if lrl_boolInReplay == 0 and lrl_boolSimPaused == 0 and lrl_POSTRATE then lrl_postLandingRateMx() end
+	if lrl_boolInReplay == 0 and lrl_boolSimPaused == 0 and lrl_POSTRATE then 
+		lrl_postLandingRateMx() 
+	end
 end
 
 function lrl_updateLandingResult()
 	local osts = os.clock()
-
 	-- Calculate the instantaneous average gVS (ground vertical speed)
 	-- from the avg ground level over average time
 	local aglAvg = calcAvg_lrl_agl()
 	local aglTimeslice = calcTime_lrl_agl()
 	local aglMidpoint = lrl_agl - aglAvg
 	local gVS = (aglMidpoint / (aglTimeslice / 2)) * 196.85
-	-- butterball_gVS = gVS
-
 	-- Show debugging information
 	if lrl_DEBUG then
 		if gVS > 0 then
@@ -287,10 +304,12 @@ function lrl_updateLandingResult()
 	-- NOT PAUSED
 	-- If the sim is running in the ARMED state, collect our agl and g-force values
 	--if lrl_popupState == lrl_ARMED and lrl_boolSimPaused == 0 then
-	if lrl_boolSimPaused == 0 then
+	if lrl_boolSimPaused == 0 then -- and (lrl_agl < 5 or lrl_popupState == lrl_LANDED) then
 		pushValue_lrl_agl(lrl_agl, lrl_localtime)
 		pushValue_lrl_landingG(lrl_gforce, lrl_localtime)
-		pushValue_lrl_gearForce((lrl_YN / 4.4482216153), lrl_localtime)
+		pushValue_lrl_gearForce((lrl_ZN + lrl_YN) / 10, lrl_localtime)
+		-- write2log("mxdev.log", string.format("NotPaused, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f\n", 
+		--	lrl_localtime, lrl_agl, lrl_gforce,lrl_ZN, lrl_YN, lrl_Weight, (( lrl_ZN + lrl_YN) / 10)/lrl_Weight))
 	end
 
 	-- BELOW 15M
@@ -300,14 +319,7 @@ function lrl_updateLandingResult()
 		lrl_floatFinal = 0
 	end
 
-	-- FULLY LANDED
-	-- If we're in a LANDED state (or later) and we have a float time marker,
-	-- and the final rate isn't determined yet, then find it.
-	if lrl_popupState >= lrl_LANDED and lrl_floatTimer > 0 and lrl_floatFinal == 0 then
-		lrl_floatFinal = osts - lrl_floatTimer
-	end
-
-	-- ANY WHEEL DOWN AND STILL FLYING
+	-- 	LANDED ANY WHEEL DOWN AND STILL FLYING
 	-- If we're in an ARMED state, and we're transitioning from no wheels down to having wheels down,
 	-- then grab the ground speed from gVS, find the max lrl_gforce ang lrl_gearLbF
 	--   and populate our status and change to the LANDED state
@@ -316,8 +328,8 @@ function lrl_updateLandingResult()
 		-- wing (center) wheels touched down
 		if lrl_landingRate == nil then
 			lrl_landingRate = gVS
-			lrl_landingG = calcMax_lrl_landingG()       -- EdmundS
 			lrl_gearLbF = calcMax_lrl_gearForce()   -- EdmundS
+			lrl_landingG = lrl_gearLbF / lrl_Weight      -- EdmundS
 		end
 		lrl_populatePopupStats()
 		lrl_popupState = lrl_LANDED
@@ -325,18 +337,21 @@ function lrl_updateLandingResult()
 		lrl_logDisplayOn = true
 	end
 
+	-- EdmundS
+	--After landing readings
+	if lrl_popupState == lrl_LANDED and lrl_ReadMore < lrl_READAFTERLANDING then 
+		-- pushValue_lrl_gearForce(((lrl_ZN + lrl_YN) / 10), lrl_localtime)
+		lrl_landingG = calcMax_lrl_gearForce() / lrl_Weight
+		lrl_ReadMore = lrl_ReadMore + 1
+		write2log("gearforcedata.txt", string.format("%.3f - %s\n",calcMax_lrl_gearForce(), csvStringOf_lrl_gearForce()))
+		lrl_populatePopupStats()
+		lrl_populatePopupStats2()
+	end
+
 	--LANDED BUT NOT ALL WHEELS DOWN
 	-- If we have wing wheels down but not the nose wheel, give the pilot some feedback.
 	-- Otherwise, give the final nose rate and move onto the final STEERINGDN state.
 	if lrl_popupState == lrl_LANDED and lrl_logAnyWheel then
-		-- EdmundS
-		if(lrl_ReadMore < lrl_READAFTERLANDING) then 
-			lrl_landingG = calcMax_lrl_landingG()
-			lrl_gearLbF = calcMax_lrl_gearForce()
-			lrl_ReadMore = lrl_ReadMore + 1
-		    lrl_populatePopupStats()
-		end
-		--
 		if not lrl_logAllWheels then
 			-- Wing wheels down, inform the pilot
 			lrl_popupText[3] = "Slowly lower the steering"
@@ -347,6 +362,13 @@ function lrl_updateLandingResult()
 		end
 		lrl_showUntil = osts + lrl_SECONDS_TO_DISPLAY
 		lrl_logDisplayOn = true
+	end
+
+	-- FULLY LANDED
+	-- If we're in a LANDED state (or later) and we have a float time marker,
+	-- and the final rate isn't determined yet, then find it.
+	if lrl_popupState >= lrl_LANDED and lrl_floatTimer > 0 and lrl_floatFinal == 0 then
+		lrl_floatFinal = osts - lrl_floatTimer
 	end
 
 	-- Grab the latest wheel states
@@ -411,7 +433,6 @@ function LandingRateMxVR_window(lrl_vr_wndObj, x, y)
 	return
 end
 -- erhardma
-
 
 function lrl_loopCallback()
 	lrl_updateLandingResult()
@@ -516,4 +537,4 @@ do_every_draw('lrl_loopCallback()')
 
 do_often("lrl_checkForVR()")
 
-add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "deactivate")
+add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "activate")
