@@ -14,7 +14,7 @@ lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
 lrl_POSTRATE = true
 
-lrl_READAFTERLANDING = 50
+lrl_READAFTERLANDING = 60
 
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
 require("graphics")
@@ -31,7 +31,7 @@ dataref("lrl_boolSimPaused", "sim/time/paused", "readonly")
 dataref("lrl_boolInReplay", "sim/time/is_in_replay", "readonly")
 dataref("lrl_boolBeaconOn", "sim/cockpit2/switches/beacon_on", "readonly")
 
--- Thanks to EdmundStoner for woring on the G's and adding a force indicator
+-- Thanks to EdmundStoner for working on accurate G's and a force indicator
 dataref("lrl_YN", "sim/flightmodel/forces/fnrml_gear", "readonly") --the landing gear Y forces in Newtons 
 dataref("lrl_ZN", "sim/flightmodel/forces/faxil_gear", "readonly") --the landing gear Z forces in Newtons
 dataref("lrl_Weight", "sim/flightmodel/weight/m_total", "readonly") --the Total weight of the craft
@@ -154,7 +154,7 @@ end
 
 new_table("lrl_agl", 20)
 new_table("lrl_landingG", 10)
-new_table("lrl_gearForce", 50)
+new_table("lrl_gearForce", 60)
 
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
@@ -193,7 +193,7 @@ function lrl_postLandingRateMx()
 end
 
 function lrl_populatePopupStats()
-	lrl_popupText[1] = string.format("Vertical Speed %.2fFPM  %.2fG Gear Force %.2f", 
+	lrl_popupText[1] = string.format("Vertical Speed %.2f FPM  %.2fG  Gear Force %.2f", 
 	        lrl_landingRate, lrl_landingG, lrl_gearLbF)
 
 	if lrl_qAdj == nil then
@@ -261,10 +261,10 @@ function lrl_updateLandingResult()
 			    tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
 		-- EdmundS			    
 		draw_string_Helvetica_18(100, 120,
-			string.format("Total Weight %.1f| Force on Gear: %.1f lbf | G's on Gear: %.1f | Max Gear force: %.1f", 
-			    lrl_Weight, lrl_YN / 4.4482216153, (lrl_YN / 4.4482216153)/(lrl_Weight*2.2), (calcMax_lrl_gearForce() or .01) ))
+			string.format("Total Weight %.1f| Force on Gear: %.1f lbf | G's Gear: %.2f | Max Gear force: %.1f", 
+			    lrl_Weight, lrl_YN / 4.4482216153, ((lrl_YN + lrl_ZN) / 10) (lrl_Weight), (calcMax_lrl_gearForce() or .01) ))
 		--			    
-    	draw_string_Helvetica_18(100, 100,
+    		draw_string_Helvetica_18(100, 100,
 			string.format("agl: %.2f  VSI: %d | DisplayOn: %s   lrl_popupState: %d", lrl_agl, lrl_vertfpm,
 				tostring(lrl_logDisplayOn), lrl_popupState))
 		if #values_axis_lrl_agl > 0 then
@@ -338,14 +338,14 @@ function lrl_updateLandingResult()
 	end
 
 	-- EdmundS
-	--After landing readings
+	-- After landing readings
 	if lrl_popupState == lrl_LANDED and lrl_ReadMore < lrl_READAFTERLANDING then 
 		-- pushValue_lrl_gearForce(((lrl_ZN + lrl_YN) / 10), lrl_localtime)
 		lrl_landingG = calcMax_lrl_gearForce() / lrl_Weight
 		lrl_ReadMore = lrl_ReadMore + 1
-		write2log("gearforcedata.txt", string.format("%.3f - %s\n",calcMax_lrl_gearForce(), csvStringOf_lrl_gearForce()))
+		-- write2log("gearforcedata.txt", string.format("%.3f - %s\n",calcMax_lrl_gearForce(), csvStringOf_lrl_gearForce()))
 		lrl_populatePopupStats()
-		lrl_populatePopupStats2()
+		-- lrl_populatePopupStats2()
 	end
 
 	--LANDED BUT NOT ALL WHEELS DOWN
