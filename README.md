@@ -10,7 +10,7 @@ In the LandingRateMx Debug screen(turn it on in the Lua Macro Menus), while the 
 
 You will see on the Debug display, that if the weight of the plane is more than the weight on the gear, the Gear G's will be under 1. if the aircraft weight is less the the force on the gear, the G's will be more than 1. The math is pretty simple:
 #### WEIGHT / GEAR-FORCE = G's. 
-An example of this would be that a landing with a force of 2G's, with a 1000lb plane, will be a force of 2000lbs applied to the gear and a landing with a force of .9G's, with a 1000lb plane, will be a force of 900lbs applied to the gear
+An example of this would be that a landing a 1000lb plane, with a force of 2G's, is a force of 2000lbs applied to the gear and a landing a 1000lb plane, with a force of .9G's, will be a force of 900lbs applied to the gear
 
 Use the File List to see when and maybe what changes have been made to the files.
 I will update the changelog and this ReadMe to explain some of the changes.
