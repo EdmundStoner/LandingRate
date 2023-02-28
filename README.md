@@ -8,7 +8,7 @@ This script is an X-Plane 11/12 Landing rate plugin that will analyze the data t
 
 In the LandingRateMx Debug screen(turn it on in the Lua Macro Menus), while the aircraft is stopped in calm weather, you will see that the weight and the force on the gear will be the same (well, pretty close) and this is in Kilograms, because that is what the datarefs typically use. Check this against the weight in X-Plane's weight and balance window. Even though all of these values are created by X-Plane, they are not all exactly the same(?). 
 
-You will see on this display, that if the weight of the plane is more than the weight on the gear, the Gear G's will be under 1. if the aircraft weight is less the the force on the gear, the G's will be more than 1. The math is pretty simple:
+You will see on the Debug display, that if the weight of the plane is more than the weight on the gear, the Gear G's will be under 1. if the aircraft weight is less the the force on the gear, the G's will be more than 1. The math is pretty simple:
 #### WEIGHT / GEAR-FORCE = G's. 
 An example of this would be that a landing with a force of 2G's, with a 1000lb plane, will be a force of 2000lbs applied to the gear and a landing with a force of .9G's, with a 1000lb plane, will be a force of 900lbs applied to the gear
 
