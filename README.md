@@ -12,8 +12,9 @@ In the Debug screen you will see that the weight and the force on the gear will 
 
 if the weight of the plane is more than the weight on the gear, the Gear G's will be under 1. if the aircraft weight is less the the force on the gear, the Gear G's will be more than 1. 
 
-The math is pretty simple:####WEIGHT / GEAR-FORCE = G's. 
-This means that landing 2 G's on a 1000 lb plane will be 2000 lbs of force applied to the gear.
+The math is pretty simple:
+####.    WEIGHT / GEAR-FORCE = G's. 
+Am example of this would be that a landing of 2G's with a 1000 lb plane will be a force 2000 lbs applied to the gear.
 
 
 To get a zip of the files, click [here](https://github.com/EdmundStoner/LandingRate/archive/refs/heads/main.zip).
