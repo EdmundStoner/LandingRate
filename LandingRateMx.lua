@@ -257,12 +257,12 @@ function lrl_updateLandingResult()
 			graphics.set_color(1.0, 0.0, 0.0, 1.0)
 		end
 		draw_string_Helvetica_18(100, 140,
-			string.format("lrl_landingRate: %s | lrl_noseRate: %s | lrl_floatFinal: %s", 
-			    tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
+			string.format("lrl_landingRate: %s | lrl_noseRate: %s | lrl_floatFinal: %s",
+				tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
 		-- EdmundS			    
 		draw_string_Helvetica_18(100, 120,
-			string.format("Total Weight %.1f| Force on Gear: %.1f lbf | G's Gear: %.2f | Max Gear force: %.1f", 
-			    lrl_Weight, lrl_YN / 4.4482216153, ((lrl_YN + lrl_ZN) / 10) / lrl_Weight, (calcMax_lrl_gearForce() or .01) ))
+			string.format("Total Weight %.1f| Force on Gear: %.1f k/m | G's Gear: %.2f | Max Gear force: %.1f", 
+			    lrl_Weight, lrl_YN  + lrl_ZN, ((lrl_YN + lrl_ZN) / 10) / (lrl_Weight), (calcMax_lrl_gearForce() or .01) ))
 		--			    
     		draw_string_Helvetica_18(100, 100,
 			string.format("agl: %.2f  VSI: %d | DisplayOn: %s   lrl_popupState: %d", lrl_agl, lrl_vertfpm,
@@ -458,6 +458,7 @@ function lrl_loopCallback()
 					local xoffset = (boxWidth - measure_string(lrl_popupText[x + 1], "Helvetica_" .. lrl_FONTSIZE)) * 0.5
 					local code = string.format("draw_string_Helvetica_%d(%f, %f, '%s');\n", lrl_FONTSIZE, xpos + xoffset,
 						ypos + yoffset - (x * yspacing), lrl_popupText[x + 1])
+					write2log("error.txt",code)
 					assert(loadstring(code))()
 				end
 			end
@@ -537,4 +538,4 @@ do_every_draw('lrl_loopCallback()')
 
 do_often("lrl_checkForVR()")
 
-add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "deactivate")
+add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "activate")
