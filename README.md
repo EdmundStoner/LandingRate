@@ -1,6 +1,10 @@
 # LandingRateMx Beta
 
-This is version ES v1.0 (2023-03-01) of the LandingRateMx, FlyWithLua script, originally written by Dan Berry that includes added VR support by William R Good (SparkerInVR) based on initial work by Erhardma
+
+## A work in progress
+
+
+This is version ES v0.7 (2023-03-01) of the LandingRateMx, FlyWithLua script, originally written by Dan Berry that includes added VR support by William R Good (SparkerInVR) based on initial work by Erhardma
 
 This script is an X-Plane landing rate plugin that will analyze the data with what X-Plane and Lua provide to record and display the forces that occur during a landing. The most signifigant change from the original is, this version uses the datarefs that pertain to the wheel force. This also allows to display the maximum Lb's of force that was applied the gear during the landing. 
 
