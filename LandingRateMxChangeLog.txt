@@ -1,3 +1,8 @@
+Change on 2023-03-01
+    -- Cleaned up the code and reworked the comments
+    -- Revised data storage array sizes
+    
+
 Change on 2023-02-26
     -- used the gear forces divided by the weight to generate the reading of G's
     -- added after landing readings to make sure that each bounce is analyzed
