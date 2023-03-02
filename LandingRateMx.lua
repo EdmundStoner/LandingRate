@@ -1,10 +1,10 @@
----@diagnostic disable: undefined-global, lowercase-global, deprecated, assign-type-mismatch, param-type-mismatch
-
--- These define the positioning of the window from 0% (0.0) to 100% (1.0)
--- lrl_XPCT: 0.0 = left edge, 1.0 = right edge
--- lrl_YPCT: 0.0 = bottom edge, 1.0 = top edge
-lrl_XPCT = 0.5
-lrl_YPCT = 0.8
+---------------------------------------------------------
+-- Landing Rate Mx
+lrl_Version = "ES V1.0"
+--
+-- Define the positioning of the window from 0% (0.0) to 100% (1.0)
+lrl_XPCT = 0.5 --  0.0 = left edge, 1.0 = right edge
+lrl_YPCT = 0.8 -- lrl_YPCT: 0.0 = bottom edge, 1.0 = top edge
 -- This defines the font size. Available sizes = 10, 12 or 18.
 lrl_FONTSIZE = 18
 -- The number of seconds to display the on-screen popup, or -1 for no popup.
@@ -15,10 +15,13 @@ lrl_displayBorder = 2
 lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
 lrl_POSTRATE = true
-
+-- Set lrl_READAFTERLANDING to the number of frames that will be reading gear forces after the first wheel touches
 lrl_READAFTERLANDING = 100
-
+--
+--
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
+--
+---------------------------------------------------------
 require("graphics")
 -- Set and assign the Datarefs
 dataref("lrl_vertfpm", "sim/flightmodel/position/vh_ind_fpm", "readonly")
@@ -151,12 +154,12 @@ function new_table(tn, samples)
 	assert(loadstring(code))()
 end
 --Define and set the variables to be used
-new_table("lrl_agl", 101)			-- above ground level value
-new_table("lrl_gearForce", 101)		-- Force on the gear
+new_table("lrl_agl", (lrl_READAFTERLANDING + 1))		-- above ground level value
+new_table("lrl_gearForce", (lrl_READAFTERLANDING + 1))		-- Force on the gear
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
 lrl_popupText = { "Landing Rate Max G" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), 
-	"A modification of Dan Berry`s code", 	"ES V1.0", "" }
+	"A modification of Dan Berry`s original", lrl_Version, "" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
 lrl_popupState = lrl_STEERINGDN
