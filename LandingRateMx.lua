@@ -9,18 +9,19 @@ lrl_YPCT = 0.8
 lrl_FONTSIZE = 18
 -- The number of seconds to display the on-screen popup, or -1 for no popup.
 lrl_SECONDS_TO_DISPLAY = 20
+-- Border Width
+lrl_displayBorder = 2
 -- Set lrl_SHOW_TIMER to "true" (show) or "false" (don't show) the float timer
 lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
 lrl_POSTRATE = true
 
-lrl_READAFTERLANDING = 60
+lrl_READAFTERLANDING = 100
 
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
 require("graphics")
-
+-- Set and assign the Datarefs
 dataref("lrl_vertfpm", "sim/flightmodel/position/vh_ind_fpm", "readonly")
-dataref("lrl_gforce", "sim/flightmodel2/misc/gforce_normal", "readonly")
 dataref("lrl_boolOnGroundAny", "sim/flightmodel/failures/onground_any", "readonly")
 dataref("lrl_boolOnGroundAll", "sim/flightmodel/failures/onground_all", "readonly")
 dataref("lrl_agl", "sim/flightmodel/position/y_agl", "readonly")
@@ -30,8 +31,6 @@ dataref("lrl_localtime", "sim/time/local_time_sec", "readonly")
 dataref("lrl_boolSimPaused", "sim/time/paused", "readonly")
 dataref("lrl_boolInReplay", "sim/time/is_in_replay", "readonly")
 dataref("lrl_boolBeaconOn", "sim/cockpit2/switches/beacon_on", "readonly")
-
--- Thanks to EdmundStoner for working on accurate G's and a force indicator
 dataref("lrl_YN", "sim/flightmodel/forces/fnrml_gear", "readonly") --the landing gear Y forces in Newtons 
 dataref("lrl_ZN", "sim/flightmodel/forces/faxil_gear", "readonly") --the landing gear Z forces in Newtons
 dataref("lrl_Weight", "sim/flightmodel/weight/m_total", "readonly") --the Total weight of the craft
@@ -39,6 +38,7 @@ dataref("lrl_Weight", "sim/flightmodel/weight/m_total", "readonly") --the Total 
 -- Thanks to [erhardma] for adding VR support!
 dataref("lrl_vr_enabled", "sim/graphics/VR/enabled", "readonly")
 
+-- checks that FlyWithLua will work with VR
 if not SUPPORTS_FLOATING_WINDOWS then
 	-- to make sure the script doesn't stop old FlyWithLua versions
 	logMsg("Floating windows requires an updated FlyWithLua NG")
@@ -46,22 +46,21 @@ if not SUPPORTS_FLOATING_WINDOWS then
 	return
 end
 -- erhardma
-
+-- Set Landing rate constants
 lrl_ARMED = 0
 lrl_LANDED = 1
 lrl_STEERINGDN = 2
 lrl_STANDBY = 3
-
-function write2log(fn,s)
+-- append a string to a file, fn=Filename to append to, s=string to append
+function append2log(fn,s)
 	io.output(io.open(fn, "a"))
 	io.write(s)
 	io.close()
 end
-
--- Table Classes 
+-- Create and assert the functions and variables of a Table Class
 -- Variables = values_axis_tABLEnAME,ts_axis_tABLEnAME
 -- functions = init_tABLEnAME(), calcAvg_tABLEnAME(), calc_Max_tABLEnAME(), 
---             calcDeviation_tABLEnAME(),calcTime_tABLEnAME(), pushValue_tABLEnAME(value, ts)
+--             calcDeviation_tABLEnAME(), calcTime_tABLEnAME(), pushValue_tABLEnAME(value, ts)
 function new_table(tn, samples)
     -- Add a class of a table
 	-- make samples an optional argument
@@ -147,30 +146,28 @@ function new_table(tn, samples)
 	code = code .. "    ts_axis_" .. tn .. "[1] = ts\n"
 	code = code .. "end\n"
 
-	--write2log("ClassObj.lua",code)
+	--append2log("ClassObj.lua",code)
 	-- execute the code
 	assert(loadstring(code))()
 end
-
-new_table("lrl_agl", 20)
-new_table("lrl_landingG", 10)
-new_table("lrl_gearForce", 60)
-
+--Define and set the variables to be used
+new_table("lrl_agl", 101)			-- above ground level value
+new_table("lrl_gearForce", 101)		-- Force on the gear
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
-
-lrl_popupText = { "Landing Rate Max G for Lua" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), "Mod of Dan Berry`s code", 
-	"ES VERSION 0.6", "EXPERIMENTAL" }
+lrl_popupText = { "Landing Rate Max G" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), 
+	"A modification of Dan Berry`s code", 	"ES V1.0", "" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
 lrl_popupState = lrl_STEERINGDN
 lrl_landingRate = 1.0
 lrl_landingG = 1.0
-lrl_gearLbF = lrl_Weight
+lrl_gearKgM = lrl_Weight
 lrl_floatTimer = 0
 lrl_floatFinal = 0
 lrl_noseRate = nil
-
+-- -----------------------  FUNCTIONS -----------------------------------------------------------
+-- append the landing stats to the LandingRate log file
 function lrl_postLandingRateMx()
 	-- CSV format:
 	-- Timestamp, PLANE_ICAO, Landing Rate, Landing G-Force, Landing Nose Rotate Rate, Floating Time, Flare Rating,Force on Gear
@@ -186,15 +183,12 @@ function lrl_postLandingRateMx()
 			lrl_popupText[5])
 	end
 	logMsg(string.format("%s Landing Rate: %s", d, s))
-
-	io.output(io.open("LandingRate.log", "a"))
-	io.write(d, ",", PLANE_ICAO, ",", s, "\n")
-	io.close()
+	append2log("LandingRate.log",string.format("%s,%s,%s\n", d, PLANE_ICAO, s) )
 end
-
+-- Grades the flare and creates lines 1,2 and 5 for the display and logfile (log uses line 5)
 function lrl_populatePopupStats()
-	lrl_popupText[1] = string.format("Vertical Speed %.2f FPM  %.2fG  Gear Force %.2f", 
-	        lrl_landingRate, lrl_landingG, lrl_gearLbF)
+	lrl_popupText[1] = string.format("%.2f FPM  %.2fG   %.2fLbs", 
+	        lrl_landingRate, lrl_landingG, lrl_gearKgM*2.2)
 
 	if lrl_qAdj == nil then
 		-- Grade the flare
@@ -224,10 +218,10 @@ function lrl_populatePopupStats()
 			end
 		end
 		lrl_popupText[2] = flare .. " flare"
-		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gforce) -- EdmundS
+		lrl_popupText[5] = string.format("%.2f,%.2f", lrl_qAdj, Qrad) -- EdmundS
 	end
 end
-
+-- sets the nose rate, creates line 3 for the display
 function lrl_populatePopupStats2()
 	if lrl_noseRate == nil then 
 		lrl_noseRate = lrl_Q 
@@ -240,58 +234,61 @@ function lrl_populatePopupStats2()
 		lrl_postLandingRateMx() 
 	end
 end
-
+-- LANDING CALCULATOR
+--	Checks flight status, sets landing stats, controls the display and shows the debug screen
 function lrl_updateLandingResult()
 	local osts = os.clock()
 	-- Calculate the instantaneous average gVS (ground vertical speed)
 	-- from the avg ground level over average time
+
 	local aglAvg = calcAvg_lrl_agl()
 	local aglTimeslice = calcTime_lrl_agl()
 	local aglMidpoint = lrl_agl - aglAvg
 	local gVS = (aglMidpoint / (aglTimeslice / 2)) * 196.85
-	-- Show debugging information
+	-- Show debugging information screen
 	if lrl_DEBUG then
 		if gVS > 0 then
 			graphics.set_color(0.0, 1.0, 0.0, 1.0)
 		else
 			graphics.set_color(1.0, 0.0, 0.0, 1.0)
 		end
+		-- line 1
 		draw_string_Helvetica_18(100, 140,
 			string.format("lrl_landingRate: %s | lrl_noseRate: %s | lrl_floatFinal: %s",
 				tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
-		-- EdmundS			    
+		-- line 2			    
 		draw_string_Helvetica_18(100, 120,
 			string.format("Total Weight %.1f| Force on Gear: %.1f k/m | G's Gear: %.2f | Max Gear force: %.1f", 
-			    lrl_Weight, lrl_YN  + lrl_ZN, ((lrl_YN + lrl_ZN) / 10) / (lrl_Weight), (calcMax_lrl_gearForce() or .01) ))
-		--			    
+			    lrl_Weight, lrl_YN  + lrl_ZN, ((lrl_YN + lrl_ZN) / 10) / lrl_Weight, (calcMax_lrl_gearForce() or .01) ))
+		--	line 3	    
     		draw_string_Helvetica_18(100, 100,
 			string.format("agl: %.2f  VSI: %d | DisplayOn: %s   lrl_popupState: %d", lrl_agl, lrl_vertfpm,
 				tostring(lrl_logDisplayOn), lrl_popupState))
+		-- line 4
 		if #values_axis_lrl_agl > 0 then
 			draw_string_Helvetica_18(100, 80,
 				string.format("aglAvg: %.2f (%+.3fm in %.2fs = %+.2f FPM)", aglAvg, aglMidpoint, aglTimeslice, gVS))
 		else
 			draw_string_Helvetica_18(100, 80, "Recorder drained")
 		end
+		-- line 5
 		draw_string_Helvetica_18(100, 60, string.format("Q: %.2f | Qrad: %.2f", lrl_Q, lrl_Qrad))
+		-- line 6
 		if lrl_floatTimer ~= 0 then
 			draw_string_Helvetica_18(100, 40, string.format("CAT IIIB timer: %.2f secs", osts - lrl_floatTimer))
 		end
 	end
 
-	-- ABOVE 15M
-	-- If we're in the STANDBY state and we go >15m agl (but not in replay), then
-	--   clear all our agl+lrl_gforce stats (and others), enable the display (but keep it off)
-	if lrl_popupState ~= lrl_ARMED and lrl_agl > 15 and lrl_boolInReplay == 0 then --- Reset
+	-- Flying ABOVE 15M reset all of the landing stats and turn off the display
+	if lrl_popupState ~= lrl_ARMED and lrl_agl > 15 and lrl_boolInReplay == 0 then
 		if #values_axis_lrl_agl ~= 0 then -- Reset recorders
 			init_lrl_agl()
-			init_lrl_landingG()
 			init_lrl_gearForce()
 		end
 		lrl_landingRate = nil
 		lrl_landingG = nil
 		lrl_noseRate = nil
-		lrl_gearLbF = nil
+		lrl_gearKgM = nil
 		lrl_qAdj = nil
 		lrl_floatTimer = 0
 		lrl_floatFinal = 0
@@ -301,15 +298,10 @@ function lrl_updateLandingResult()
 		lrl_ReadMore = 0
 	end
 
-	-- NOT PAUSED
-	-- If the sim is running in the ARMED state, collect our agl and g-force values
-	--if lrl_popupState == lrl_ARMED and lrl_boolSimPaused == 0 then
-	if lrl_boolSimPaused == 0 then -- and (lrl_agl < 5 or lrl_popupState == lrl_LANDED) then
+	-- If Not paused, record our agl and gear force values
+	if lrl_boolSimPaused == 0 then
 		pushValue_lrl_agl(lrl_agl, lrl_localtime)
-		pushValue_lrl_landingG(lrl_gforce, lrl_localtime)
 		pushValue_lrl_gearForce((lrl_ZN + lrl_YN) / 10, lrl_localtime)
-		-- write2log("mxdev.log", string.format("NotPaused, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f\n", 
-		--	lrl_localtime, lrl_agl, lrl_gforce,lrl_ZN, lrl_YN, lrl_Weight, (( lrl_ZN + lrl_YN) / 10)/lrl_Weight))
 	end
 
 	-- BELOW 15M
@@ -319,17 +311,14 @@ function lrl_updateLandingResult()
 		lrl_floatFinal = 0
 	end
 
-	-- 	LANDED ANY WHEEL DOWN AND STILL FLYING
-	-- If we're in an ARMED state, and we're transitioning from no wheels down to having wheels down,
-	-- then grab the ground speed from gVS, find the max lrl_gforce ang lrl_gearLbF
-	--   and populate our status and change to the LANDED state
-	--   so we can calculate the nose rate
+	-- LANDED ANY WHEEL BUT NOT ALL OF THE WHEELS
+	-- then grab the ground speed from gVS, find the max gforce(lrl_landingG) and force on the gear (lrl_gearKgM)
+	--   Turn on the display for a set time, populate our status and change to the LANDED state
 	if lrl_popupState == lrl_ARMED and (not lrl_logAnyWheel and lrl_boolOnGroundAny == 1) then
-		-- wing (center) wheels touched down
 		if lrl_landingRate == nil then
 			lrl_landingRate = gVS
-			lrl_gearLbF = calcMax_lrl_gearForce()   -- EdmundS
-			lrl_landingG = lrl_gearLbF / lrl_Weight      -- EdmundS
+			lrl_gearKgM = calcMax_lrl_gearForce() 
+			lrl_landingG = lrl_gearKgM / lrl_Weight
 		end
 		lrl_populatePopupStats()
 		lrl_popupState = lrl_LANDED
@@ -337,25 +326,24 @@ function lrl_updateLandingResult()
 		lrl_logDisplayOn = true
 	end
 
-	-- EdmundS
 	-- After landing readings
+	--   Check and record any bounces that are larger G forces(lrl_landingG) and forces on the gear (lrl_gearKgM)
 	if lrl_popupState == lrl_LANDED and lrl_ReadMore < lrl_READAFTERLANDING then 
-		-- pushValue_lrl_gearForce(((lrl_ZN + lrl_YN) / 10), lrl_localtime)
-		lrl_landingG = calcMax_lrl_gearForce() / lrl_Weight
+		lrl_gearKgM = calcMax_lrl_gearForce()
+		lrl_landingG = lrl_gearKgM / lrl_Weight 
 		lrl_ReadMore = lrl_ReadMore + 1
-		-- write2log("gearforcedata.txt", string.format("%.3f - %s\n",calcMax_lrl_gearForce(), csvStringOf_lrl_gearForce()))
 		lrl_populatePopupStats()
-		-- lrl_populatePopupStats2()
 	end
 
 	--LANDED BUT NOT ALL WHEELS DOWN
 	-- If we have wing wheels down but not the nose wheel, give the pilot some feedback.
-	-- Otherwise, give the final nose rate and move onto the final STEERINGDN state.
+	-- Otherwise, give the nose rate, reset the Display on timer and then move onto the final STEERINGDN state.
+	-- then post the ladning stats to the landing rate log file
 	if lrl_popupState == lrl_LANDED and lrl_logAnyWheel then
 		if not lrl_logAllWheels then
 			-- Wing wheels down, inform the pilot
 			lrl_popupText[3] = "Slowly lower the steering"
-		else  -- EdmundS
+		else 
 			lrl_popupState = lrl_STEERINGDN
 		    lrl_populatePopupStats()
 			lrl_populatePopupStats2()
@@ -375,7 +363,7 @@ function lrl_updateLandingResult()
 	lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 	lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
 end
-
+-- creates line 4 for the display
 function lrl_evalRating()
 	local r, g, b, a = 1.0, 1.0, 1.0, 1.0
 	lrl_vr_hexColor = 0xFFFFFFFF -- erhardma
@@ -396,16 +384,15 @@ function lrl_evalRating()
 		elseif (lrl_landingRate >= -600) and (lrl_landingRate < -350) then
 			r, g, b, a = 1.0, 0.5, 0.0, 1.0
 			lrl_vr_hexColor = 0xFF0080FF -- erhardma
-			lrl_popupText[4] = "HARD LANDING!"
+			lrl_popupText[4] = "FIRM LANDING!"
 		elseif (lrl_landingRate < -600) then
 			r, g, b, a = 1.0, 0.0, 0.0, 1.0
 			lrl_vr_hexColor = 0xFF0000FF -- erhardma
-			lrl_popupText[4] = "* WASTED! *"
+			lrl_popupText[4] = "HARD LANDING  -  You`ll need a gear Inspection"
 		end
 	end
 	return r, g, b, a
 end
-
 -- erhardma VR functions
 -- Create a VR window object and function to get called every frame when necessary
 lrl_vr_wndObj = nil
@@ -433,11 +420,10 @@ function LandingRateMxVR_window(lrl_vr_wndObj, x, y)
 	return
 end
 -- erhardma
-
+-- Main Loop checks the landing Calculator and shows the Landing Display
 function lrl_loopCallback()
 	lrl_updateLandingResult()
 	XPLMSetGraphicsState(0, 0, 0, 1, 1, 0, 0)
-
 	-- NOTE: You can't trust the values in replay b/c they don't update frequently enough
 	if (os.clock() < lrl_showUntil and lrl_logDisplayOn) then
 		if (lrl_boolInReplay == 0) then -- only show lrl_popupTexts live, not in replay
@@ -449,7 +435,9 @@ function lrl_loopCallback()
 			local ypos = (SCREEN_HIGHT - boxHeight) * lrl_YPCT
 			local xpos = (SCREEN_WIDTH - boxWidth) * lrl_XPCT
 
-			graphics.set_color(0.0, 0.0, 0.0, 0.3)
+			graphics.set_color(0.0, 0.0, 0.0, 0.9)
+			graphics.draw_rectangle(xpos - lrl_displayBorder, ypos - lrl_displayBorder, xpos + boxWidth + lrl_displayBorder, ypos + boxHeight + lrl_displayBorder)
+			graphics.set_color(1.0, 1.0, 1.0, 0.5)
 			graphics.draw_rectangle(xpos, ypos, xpos + boxWidth, ypos + boxHeight)
 
 			graphics.set_color(1.0, 1.0, 1.0, 1.0)
@@ -458,7 +446,6 @@ function lrl_loopCallback()
 					local xoffset = (boxWidth - measure_string(lrl_popupText[x + 1], "Helvetica_" .. lrl_FONTSIZE)) * 0.5
 					local code = string.format("draw_string_Helvetica_%d(%f, %f, '%s');\n", lrl_FONTSIZE, xpos + xoffset,
 						ypos + yoffset - (x * yspacing), lrl_popupText[x + 1])
-					write2log("error.txt",code)
 					assert(loadstring(code))()
 				end
 			end
@@ -501,7 +488,7 @@ function lrl_loopCallback()
 		end
 	end
 end
-
+-- checks for VR
 function lrl_checkForVR()
 	-- After we go into VR we need to wait a bit of time before creating the lrl_vr_wndObj.
 	-- If we go out of VR then we wait a bit of time and destroy the lrl_vr_wndObj.
