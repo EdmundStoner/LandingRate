@@ -1,6 +1,6 @@
 ---------------------------------------------------------
 -- Landing Rate Mx
-lrl_Version = "ES V1.0"
+lrl_Version = "ES V0.7"
 --
 -- Define the positioning of the window from 0% (0.0) to 100% (1.0)
 lrl_XPCT = 0.5 --  0.0 = left edge, 1.0 = right edge
