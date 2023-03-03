@@ -1,4 +1,3 @@
-
 -- This file is a modification of Dan Berry`s original
 -- by Edmund Stoner 03/02/2023
 -- Landing Rate Mx 
@@ -563,4 +562,4 @@ do_every_draw('lrl_loopCallback()')
 
 do_often("lrl_checkForVR()")
 
-add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "activate")
+add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "deactivate")
