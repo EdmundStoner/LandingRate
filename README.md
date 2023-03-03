@@ -10,7 +10,7 @@ This script is an X-Plane landing rate plugin that will analyze the data with wh
 
 Also is an after-landing function to allow for the largest bounce to be recorded, rather than the first touch to the surface. After any wheel touches, the display comes up showing the rate that the wheel touched. The G's will continue to update until all of the wheels are down. If the nose wheel hits the ground with more G's, the higher G's will be shown. If you take off again (and remain under 15M), the second landing that happens will update the G's, if they are greater. There is a bit of error checking to determine that the G's are ok. If the show a difference, '?(Check Log)' will be added to the G's on the display. Both the calculated and displayed G's are logged. It won't be much!
 
-There are ettings that are located in beginning of the LandingRateMx.lua file, such as, for the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to a logfile. BEWARE OF THE DRAGONS
+There are ettings that are located in beginning of the LandingRateMx.lua file, such as, for the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to a logfile.  BEWARE OF THE DRAGONS
 
 Run the LandingRateMx Debug screen Macro, located in the X-Plane Plugins/Lua/Macro menu, to display a bunch of data in the lower left part of the flight window. This data will be green when you are ascending and red when you are descending.
 
