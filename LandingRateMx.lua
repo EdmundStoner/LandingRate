@@ -1,7 +1,8 @@
+
 -- This file is a modification of Dan Berry`s original
 -- by Edmund Stoner 03/02/2023
 -- Landing Rate Mx 
-lrl_Version = "ES V0.75"
+lrl_Version = "ES V0.76"
 --
 -- Define the positioning of the window from 0% (0.0) to 100% (1.0)
 lrl_XPCT = 0.5 --  0.0 = left edge, 1.0 = right edge
@@ -9,15 +10,17 @@ lrl_YPCT = 0.8 -- lrl_YPCT: 0.0 = bottom edge, 1.0 = top edge
 -- This defines the font size. Available sizes = 10, 12 or 18.
 lrl_FONTSIZE = 18
 -- The number of seconds to display the on-screen popup, or -1 for no popup.
-lrl_SECONDS_TO_DISPLAY = 20
+lrl_SECONDS_TO_DISPLAY = 60
 -- Border Width
-lrl_displayBorder = 2
+lrl_displayBorder = 15
 -- Border Color {red, green,blue} each are from 0 to 1
-lrl_BorderColor = {0.4, 0.1, 0.0}
+lrl_BorderColor = {0.9, 0.5, 0.0}
 -- Set lrl_SHOW_TIMER to "true" (show) or "false" (don't show) the float timer
 lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
 lrl_POSTRATE = true
+-- set catIII to the hieght that the Landing is being set
+lrl_catIII = 5
 --
 --
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
@@ -173,12 +176,16 @@ end
 lrl_READAFTERLANDING = 1000
 new_table("lrl_agl", (lrl_READAFTERLANDING + 1))		-- above ground level value
 new_table("lrl_gearForce", (lrl_READAFTERLANDING + 1))		-- Force on the gear
+new_table("lrl_geez",lrl_READAFTERLANDING + 1)
+-- set bools
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
+--display ad
 lrl_popupText = { "Landing Rate Max" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), 
 	"A modification of Dan Berry`s original", lrl_Version, "*" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
+--set globals
 lrl_popupState = lrl_STEERINGDN
 lrl_landingRate = 1.0
 lrl_landingG = nil
@@ -186,10 +193,9 @@ lrl_gearKgM = lrl_Weight
 lrl_floatTimer = 0
 lrl_floatFinal = 0
 lrl_noseRate = nil
-
 lrl_GAccuracy= "?(Check Log)"
 lrl_errShown = false
-lrl_catIII = 15
+lrl_catIII = 5
 lrl_ReadMore = 0
 -- -----------------------  FUNCTIONS -----------------------------------------------------------
 -- Append the landing stats to the LandingRate log file
@@ -209,13 +215,13 @@ function lrl_postLandingRateMx()
 	end
 	logMsg(string.format("%s Landing Rate: %s", d, s))
 	append2log("LandingRate.log",string.format("%s,%s,%s\n", d, PLANE_ICAO, s) )
-end
+	end
 -- Grades the flare and creates lines 1,2 and 5 for the display and logfile (log uses line 5)
 function lrl_populatePopupStats()
-	lrl_GAccuracy= "?(Check Log)"
-	if math.floor(lrl_gearKgM * 1000000) == math.floor((lrl_landingG * lrl_Weight) * 1000000) then
+-- 	lrl_GAccuracy= "?(Check Log)"
+-- 	if math.floor(lrl_gearKgM * 1000000) == math.floor((lrl_landingG * lrl_Weight) * 1000000) then
 		lrl_GAccuracy = ""
-	end
+--	end
 	
 	lrl_popupText[1] = string.format("%.2f FPM  %.2fG%s = %.2f Kg of Impact", 
 	        lrl_landingRate, lrl_landingG, lrl_GAccuracy, lrl_gearKgM )
@@ -323,6 +329,7 @@ function lrl_updateLandingResult()
 		if #values_axis_lrl_agl ~= 0 then -- Reset recorders
 			init_lrl_agl()
 			init_lrl_gearForce()
+			init_lrl_geez()
 		end
 		lrl_landingRate = nil
 		lrl_landingG = nil
@@ -357,6 +364,7 @@ function lrl_updateLandingResult()
 			lrl_landingRate = gVS
 			lrl_gearKgM = calcMax_lrl_gearForce() 
 			lrl_landingG = lrl_gearKgM / lrl_Weight
+			pushValue_lrl_geez(lrl_landingG,lrl_localtime)
 		end
 		lrl_populatePopupStats()
 		lrl_popupState = lrl_LANDED
@@ -367,7 +375,8 @@ function lrl_updateLandingResult()
 	--   Check and record any bounces that are larger G forces(lrl_landingG) and forces on the gear (lrl_gearKgM)
 	if lrl_popupState == lrl_LANDED and lrl_landingG and lrl_ReadMore < lrl_READAFTERLANDING then 
 		lrl_gearKgM = calcMax_lrl_gearForce()
-		lrl_landingG = lrl_gearKgM / lrl_Weight 
+		pushValue_lrl_geez(lrl_gearKgM / lrl_Weight,lrl_localtime)
+		lrl_landingG = calcAvg_lrl_geez()
 		lrl_ReadMore = lrl_ReadMore + 1
 		lrl_populatePopupStats()
 	end
@@ -562,4 +571,4 @@ do_every_draw('lrl_loopCallback()')
 
 do_often("lrl_checkForVR()")
 
-add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "deactivate")
+add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "activate")
