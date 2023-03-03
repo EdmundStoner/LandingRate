@@ -1,5 +1,5 @@
 Change on 2023-03-03
-    -- took out error checking, never saw a difference of less than 1 millionth of a g
+    -- took out error checking, never saw a difference of more than 1 millionth of a g
     -- added a gforce average after any wheel touches until the instance that all wheels touch
     
     
