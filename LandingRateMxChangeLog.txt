@@ -1,3 +1,11 @@
+Change on 2023-03-02
+    -- Added some error checking
+    -- Reworked some logging data G errors will show both dataref and pre display values
+    -- Added border color 
+    -- changed the table classes to allow creation of data to csv strings for debugging
+    -- created CattIIIB height variable to easily control resets for a new landing record (currently 15M)
+    -- fixed the recording of nose slams, bounces and re-landing
+    
 Change on 2023-03-01
     -- Cleaned up the code and reworked the comments
 
