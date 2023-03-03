@@ -14,7 +14,7 @@ lrl_SECONDS_TO_DISPLAY = 60
 -- Border Width
 lrl_displayBorder = 15
 -- Border Color {red, green,blue} each are from 0 to 1
-lrl_BorderColor = {0.9, 0.5, 0.0}
+lrl_BorderColor = {0.9, 0.5, 0.05}
 -- Set lrl_SHOW_TIMER to "true" (show) or "false" (don't show) the float timer
 lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
