@@ -12,9 +12,9 @@ lrl_FONTSIZE = 18
 -- The number of seconds to display the on-screen popup, or -1 for no popup.
 lrl_SECONDS_TO_DISPLAY = 60
 -- Border Width
-lrl_displayBorder = 15
+lrl_displayBorder = 2
 -- Border Color {red, green,blue} each are from 0 to 1
-lrl_BorderColor = {0.9, 0.5, 0.05}
+lrl_BorderColor = {0.9, 0.2, 0.0}
 -- Set lrl_SHOW_TIMER to "true" (show) or "false" (don't show) the float timer
 lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
@@ -571,4 +571,4 @@ do_every_draw('lrl_loopCallback()')
 
 do_often("lrl_checkForVR()")
 
-add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "activate")
+add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "deactivate")
