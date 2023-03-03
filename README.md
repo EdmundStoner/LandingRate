@@ -8,7 +8,7 @@ This is version ES v0.75 (2023-03-02) of the LandingRateMx, FlyWithLua script, o
 
 This script is an X-Plane landing rate plugin that will display the forces that occur during a landing. The most significant change from the original is that this version uses the datarefs that pertain to the wheel force. This also allows to display and record the maximum weight of force that was applied the gear during the landing. 
 
-There is also is an after-landing function to allow for nose-slams, bounce and re-landings to be recorded, rather than the first touch to the surface. After any wheel touches, the display comes up showing the rate that the wheel touched. The G's will continue to update until all of the wheels are down. If the nose wheel hits the ground with more G's, the higher G's will be shown. If you take off again (and remain under 15M), the second landing that happens will update the G's, if they are greater. There is error checking to determine that the G's are ok. If there is a difference, '?(Check Log)' will be added to the G's on the display. Both the calculated and displayed G's are logged. It won't be much!
+There is also is an after-landing function to allow for nose-slams, bounce and re-landings to be recorded, rather than the first touch to the surface. After any wheel touches, the display comes up showing the rate that the wheel touched. The G's will continue to average until all of the wheels are down. 
 
 There are settings that are located in the beginning of the LandingRateMx.lua file, such as, for the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to a logfile.  BEWARE OF THE DRAGONS
 
