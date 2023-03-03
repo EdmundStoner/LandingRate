@@ -1,3 +1,8 @@
+Change on 2023-03-03
+    -- took out error checking, never saw a difference of less than 1 millionth of a g
+    -- added a gforce average after any wheel touches until the instance that all wheels touch
+    
+    
 Change on 2023-03-02
     -- Added some error checking
     -- Reworked some logging data G errors will show both dataref and pre display values
