@@ -20,7 +20,7 @@ lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
 lrl_POSTRATE = true
 -- set catIII to the hieght that the Landing is being set
-lrl_catIII = 5
+lrl_catIII = 15
 --
 --
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
