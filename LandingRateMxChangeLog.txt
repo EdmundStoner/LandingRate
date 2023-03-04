@@ -1,7 +1,10 @@
+Change on 2032-03-04
+    -- Added a csv log currently formatted: Timestamp,the calculated average, ,,the array of the landing,,
+    -- re coded some averaging functions
+
 Change on 2023-03-03
     -- took out error checking, never saw a difference of more than 1 millionth of a g
     -- added a gforce average after any wheel touches until the instance that all wheels touch
-    
     
 Change on 2023-03-02
     -- Added some error checking
