@@ -16,7 +16,7 @@ There is also is an after-landing function to allow for nose-slams, bounce and r
 
 
 
-There are settings that are located in the beginning of the LandingRateMx.lua file, such as, for the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to the logfiles.  BEWARE OF THE DRAGONS
+There are settings that are located in the beginning of the LandingRateMx.lua file for changing the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to the logfiles.  BEWARE OF THE DRAGONS
 
 Run the LandingRateMx Debug screen Macro, located in the X-Plane Plugins/Lua/Macro menu, to display a bunch of data in the lower left part of the flight window. This data will be green when you are ascending and red when you are descending. This color change is helpful when you're trying to butter a runway. 
 
