@@ -10,10 +10,13 @@ This script is an X-Plane landing rate plugin that will display the forces that 
 
 There is also is an after-landing function to allow for nose-slams, bounce and re-landings to be recorded, rather than the first touch to the surface. After any wheel touches, the display comes up showing the statistics of the weight on the gear and starts a Float timer. The display will continue to update the Average and Max on the wheels and also shows how fast the nose pitch is changing. After all of the wheels are down, the float time and the nose G's are displayed, and the LandingRate.log and the LandingRate.csv are updated.
 
+
+### Usually, the aircraft is still flying throughout the landing!
 ![Melted Butter](https://github.com/EdmundStoner/LandingRate/blob/main/butter.png "Butter")
 
 
-There are settings that are located in the beginning of the LandingRateMx.lua file, such as, for the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to a logfile.  BEWARE OF THE DRAGONS
+
+There are settings that are located in the beginning of the LandingRateMx.lua file, such as, for the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to the logfiles.  BEWARE OF THE DRAGONS
 
 Run the LandingRateMx Debug screen Macro, located in the X-Plane Plugins/Lua/Macro menu, to display a bunch of data in the lower left part of the flight window. This data will be green when you are ascending and red when you are descending. This color change is helpful when you're trying to butter a runway. 
 
