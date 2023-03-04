@@ -2,7 +2,7 @@
 -- This file is a modification of Dan Berry`s original
 -- by Edmund Stoner 03/02/2023
 -- Landing Rate Mx 
-lrl_Version = "ES V0.76"
+lrl_Version = "ES V0.8"
 --
 -- Define the positioning of the window from 0% (0.0) to 100% (1.0)
 lrl_XPCT = 0.5 --  0.0 = left edge, 1.0 = right edge
@@ -10,11 +10,11 @@ lrl_YPCT = 0.8 -- lrl_YPCT: 0.0 = bottom edge, 1.0 = top edge
 -- This defines the font size. Available sizes = 10, 12 or 18.
 lrl_FONTSIZE = 18
 -- The number of seconds to display the on-screen popup, or -1 for no popup.
-lrl_SECONDS_TO_DISPLAY = 60
+lrl_SECONDS_TO_DISPLAY = 20
 -- Border Width
 lrl_displayBorder = 2
 -- Border Color {red, green,blue} each are from 0 to 1
-lrl_BorderColor = {0.9, 0.2, 0.0}
+lrl_BorderColor = {0.9, 0.5, 0.0}
 -- Set lrl_SHOW_TIMER to "true" (show) or "false" (don't show) the float timer
 lrl_SHOW_TIMER = true
 -- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
@@ -67,7 +67,7 @@ end
 -- Create and assert the functions and variables of a Table Class
 -- Variables = values_axis_tABLEnAME,ts_axis_tABLEnAME
 -- functions = init_tABLEnAME(), calcAvg_tABLEnAME(), calc_Max_tABLEnAME(), 
---             calcDeviation_tABLEnAME(), calcTime_tABLEnAME(), pushValue_tABLEnAME(value, ts)
+--             calcTime_tABLEnAME(), pushValue_tABLEnAME(value, ts)
 function new_table(tn, samples)
     -- Add a class of a table
 	-- make samples an optional argument
@@ -107,26 +107,36 @@ function new_table(tn, samples)
 	code = code .. "    end\n"
 	code = code .. "    return max\n"
 	code = code .. "end\n"
+	code = code .. "function calcAvgFrom_" .. tn .. "(ts)\n"
+	code = code .. "    if not ts then\n"
+	code = code .. "	    return 0\n"
+	code = code .. "	end\n"
+	code = code .. "    local cnt = 0\n"
+	code = code .. "    local avg = 0\n"
+	code = code .. "    if #values_axis_" .. tn .. " > 0 then\n"
+	code = code .. "        for i = " .. samples .. ", 1, -1 do\n"
+	code = code .. "            if ts_axis_" .. tn .. "[i] ~= nil then\n"
+	code = code .. "            if ts_axis_" .. tn .. "[i] >= ts then\n"
+	code = code .. "            	avg = avg + values_axis_" .. tn .. "[i]\n"
+	code = code .. "    			cnt = cnt + 1\n"
+	code = code .. "            end\n"
+	code = code .. "            end\n"
+	code = code .. "        end\n"
+	code = code .. "        avg = avg / cnt\n"
+	code = code .. "    end\n"
+	code = code .. "    return avg\n"
+	code = code .. "end\n"
 	code = code .. "function csvStringOf_" .. tn .. "()\n"
 	code = code .. "    local str = ''\n"
 	code = code .. "    if #values_axis_" .. tn .. " > 0 then\n"
 	code = code .. "        for i = " .. samples .. ", 1, -1 do\n"
-	code = code .. "            str = str .. string.format('%f', values_axis_" .. tn .. "[i])\n"
-	code = code .. "            if i ~= 1 then\n"
-	code = code .. "            	str = str ..','\n"	
+	code = code .. "            if values_axis_" .. tn .. "[i] ~= nil then\n"
+	code = code .. "            if values_axis_" .. tn .. "[i] ~= 0 then\n"
+	code = code .. "	            str = str .. string.format('%f', values_axis_" .. tn .. "[i])\n"
+	code = code .. "    	        if i ~= 1 then\n"
+	code = code .. "        	    	str = str ..','\n"	
+	code = code .. "        	    end\n"
 	code = code .. "            end\n"
-	code = code .. "        end\n"
-	code = code .. "        str = str .. '\\n'\n"	
-	code = code .. "    end\n"
-	code = code .. "    return str\n"
-	code = code .. "end\n"
-	code = code .. "function csvStringOf_" .. tn .. "_ts()\n"
-	code = code .. "    local str = ''\n"
-	code = code .. "    if #ts_axis_" .. tn .. " > 0 then\n"
-	code = code .. "        for i = " .. samples .. ", 1, -1 do\n"
-	code = code .. "            str = str .. string.format('%f', ts_axis_" .. tn .. "[i])\n"
-	code = code .. "            if i ~= 1 then\n"
-	code = code .. "            	str = str ..','\n"	
 	code = code .. "            end\n"
 	code = code .. "        end\n"
 	code = code .. "        str = str .. '\\n'\n"	
@@ -134,23 +144,6 @@ function new_table(tn, samples)
 	code = code .. "    return str\n"
 	code = code .. "end\n"
 	--
-	code = code .. "function calcDeviation_" .. tn .. "()\n"
-	code = code .. "    local prev\n"
-	code = code .. "    local d = 0\n"
-	code = code .. "    if #values_axis_" .. tn .. " > 0 then\n"
-	code = code .. "        for i = " .. samples .. ", 1, -1 do\n"
-	code = code .. "            if values_axis_" .. tn .. "[i] then\n"
-	code = code .. "                if prev then\n"
-	code = code .. "                    local diff = values_axis_" .. tn .. "[i] - prev\n"
-	code = code .. "                    d = d + diff\n"
-	code = code .. "                end\n"
-	code = code .. "                prev = values_axis_" .. tn .. "[i]\n"
-	code = code .. "            end\n"
-	code = code .. "        end\n"
-	code = code .. "        d = d / (#values_axis_" .. tn .. " - 1)\n"
-	code = code .. "    end\n"
-	code = code .. "    return d\n"
-	code = code .. "end\n"
 	code = code .. "function calcTime_" .. tn .. "()\n"
 	code = code .. "    local d = 0\n"
 	code = code .. "    if #ts_axis_" .. tn .. " > 1 then\n"
@@ -172,42 +165,60 @@ function new_table(tn, samples)
 	-- execute the code
 	assert(loadstring(code))()
 end
+-- Reset global data
+function lrl_Reset()
+	if #values_axis_lrl_agl ~= 0 then -- Reset recorders
+		init_lrl_agl()
+		init_lrl_gearForce()
+		init_lrl_geez()
+		init_lrl_recent()
+	end
+	-- fpm 
+	lrl_landingRate = nil
+	lrl_noseRate = nil
+	lrl_qAdj = nil
+	lrl_floatTimer = 0
+	lrl_floatFinal = 0
+	-- G's
+	lrl_landingG = nil
+	lrl_gearKgM = lrl_Weight
+	lrl_firsttouchG = -1;
+	lrl_alltouchG = -0.01
+	lrl_touchedat = 0
+	lrl_ReadMore = 0
+	--Display
+	lrl_logDisplayOn = false
+	lrl_popupState = lrl_ARMED
+	lrl_popupText = {}
+end
 --Define and set the variables to be used
 lrl_READAFTERLANDING = 1000
 new_table("lrl_agl", (lrl_READAFTERLANDING + 1))		-- above ground level value
 new_table("lrl_gearForce", (lrl_READAFTERLANDING + 1))		-- Force on the gear
 new_table("lrl_geez",lrl_READAFTERLANDING + 1)
+new_table("lrl_recent",3)
 -- set bools
 lrl_logAnyWheel = lrl_boolOnGroundAny == 1 and true or false
 lrl_logAllWheels = lrl_boolOnGroundAll == 1 and true or false
+--set globals
+lrl_Reset()
 --display ad
 lrl_popupText = { "Landing Rate Max" .. (lrl_vr_enabled == 1 and " + VR v16" or ""), 
 	"A modification of Dan Berry`s original", lrl_Version, "*" }
 lrl_showUntil = os.clock() + 5
 lrl_logDisplayOn = true
---set globals
 lrl_popupState = lrl_STEERINGDN
-lrl_landingRate = 1.0
-lrl_landingG = nil
-lrl_gearKgM = lrl_Weight
-lrl_floatTimer = 0
-lrl_floatFinal = 0
-lrl_noseRate = nil
-lrl_GAccuracy= "?(Check Log)"
-lrl_errShown = false
-lrl_catIII = 5
-lrl_ReadMore = 0
 -- -----------------------  FUNCTIONS -----------------------------------------------------------
 -- Append the landing stats to the LandingRate log file
 function lrl_postLandingRateMx()
 	-- CSV format:
-	-- Timestamp, PLANE_ICAO, Landing Rate, Landing G-Force, Landing Nose Rotate Rate, Floating Time, Flare Rating, Force on Gear, Aircraft weight, lrl_GAccuracy
+	-- Timestamp, PLANE_ICAO, Landing Rate, Landing G-Force, Landing Nose Rotate Rate, Floating Time, Flare Rating, Force on Gear, Aircraft weight
 	local d = os.date("%Y-%m-%d %H:%M:%S")
 	local s
 	-- VR folks like the popup text being logged
 	-- Non-VR folks are used to having spreadsheet values then can import via CSV
 	if lrl_vr_enabled == 0 then
-		s = string.format('%.2f,%.2f%s,%.2f,%.2f,"%s",%s', lrl_landingRate, lrl_landingG, lrl_GAccuracy, lrl_noseRate , lrl_floatFinal,
+		s = string.format('%.2f,%.2f,%.2f,%.2f,"%s",%s', lrl_landingRate, lrl_landingG, lrl_noseRate , lrl_floatFinal,
 			lrl_popupText[2], lrl_popupText[5])
 	else
 		s = string.format('"%s","%s","%s","%s","%s"', lrl_popupText[1], lrl_popupText[2], lrl_popupText[3], lrl_popupText[4],
@@ -215,16 +226,13 @@ function lrl_postLandingRateMx()
 	end
 	logMsg(string.format("%s Landing Rate: %s", d, s))
 	append2log("LandingRate.log",string.format("%s,%s,%s\n", d, PLANE_ICAO, s) )
+	append2log("LandingRate.csv", string.format("%s,%f,%s", d, calcAvgFrom_lrl_gearForce(lrl_touchedat),  csvStringOf_lrl_gearForce()))
 	end
 -- Grades the flare and creates lines 1,2 and 5 for the display and logfile (log uses line 5)
 function lrl_populatePopupStats()
--- 	lrl_GAccuracy= "?(Check Log)"
--- 	if math.floor(lrl_gearKgM * 1000000) == math.floor((lrl_landingG * lrl_Weight) * 1000000) then
-		lrl_GAccuracy = ""
---	end
 	
-	lrl_popupText[1] = string.format("%.2f FPM  %.2fG%s = %.2f Kg of Impact", 
-	        lrl_landingRate, lrl_landingG, lrl_GAccuracy, lrl_gearKgM )
+	lrl_popupText[1] = string.format("%.2f FPM    Touch:%.2fG   Max:%.2fG   Avg :%.2fG    %.2f Kg", 
+	        lrl_landingRate, lrl_firsttouchG, lrl_gearKgM/lrl_Weight, calcAvg_lrl_geez(), lrl_gearKgM )
 	if lrl_qAdj == nil then
 		-- Grade the flare
             --	HOW FLAREdmundS ARE GRADED
@@ -255,21 +263,15 @@ function lrl_populatePopupStats()
 		lrl_popupText[2] = flare .. " flare"
 		lrl_popupText[5] = string.format("%.2f,%.2f,%.2f,%.2f,%.2f", lrl_qAdj, Qrad, lrl_gearKgM,  lrl_Weight, ( lrl_landingG * lrl_Weight ))
 	end
-
-	if lrl_GAccuracy ~= "" and not lrl_errShown then
-		lrl_GAccuracy = string.format("(%.8f or %.8f)",lrl_landingG, lrl_gearKgM / lrl_Weight )
-		lrl_postLandingRateMx()
-		lrl_errShown = true
-	end
 end
 -- sets the nose rate, creates line 3 for the display
 function lrl_populatePopupStats2()
 	if lrl_noseRate == nil then
 		lrl_noseRate = lrl_Q
 	end
-	lrl_popupText[3] = string.format("Nose: %.2f deg/sec", lrl_noseRate)
+	lrl_popupText[3] = string.format("Nose Pitch: %.2f deg/sec", lrl_noseRate)
 	if lrl_SHOW_TIMER then
-		lrl_popupText[3] = lrl_popupText[3] .. string.format(" | Float: %.2f secs", lrl_floatFinal)
+		lrl_popupText[3] = lrl_popupText[3] .. string.format("    Float: %.2f secs       Nose G:%.2f", lrl_floatFinal, lrl_alltouchG)
 	end
 	if lrl_boolInReplay == 0 and lrl_boolSimPaused == 0 and lrl_POSTRATE then
 		lrl_postLandingRateMx()
@@ -326,29 +328,13 @@ function lrl_updateLandingResult()
 	lrl_showDebug(aglAvg, aglMidpoint, aglTimeslice, gVS)
 	-- Flying ABOVE CATIIIB Height (usually 15M) reset all of the landing stats and turn off the display
 	if lrl_popupState ~= lrl_ARMED and lrl_agl > lrl_catIII and lrl_boolInReplay == 0 then
-		if #values_axis_lrl_agl ~= 0 then -- Reset recorders
-			init_lrl_agl()
-			init_lrl_gearForce()
-			init_lrl_geez()
-		end
-		lrl_landingRate = nil
-		lrl_landingG = nil
-		lrl_noseRate = nil
-		lrl_gearKgM = nil
-		lrl_qAdj = nil
-		lrl_floatTimer = 0
-		lrl_floatFinal = 0
-		lrl_logDisplayOn = false
-		lrl_popupState = lrl_ARMED
-		lrl_popupText = {}
-		lrl_ReadMore = 0
-		lrl_GAccuracy=" ? "
-		lrl_errShown = false
+		lrl_Reset()
 	end
 	-- If Not paused, record our agl and gear force values
 	if lrl_boolSimPaused == 0 then
 		pushValue_lrl_agl(lrl_agl, lrl_localtime)
 		pushValue_lrl_gearForce((lrl_ZN + lrl_YN) / 10, lrl_localtime)
+		pushValue_lrl_recent((lrl_ZN + lrl_YN) / 10, lrl_localtime)
 	end
 	-- BELOW CATIIIB Height (usually 15M)
 	-- If we're below CAT-IIIB height, mark the time and reset float counter to 0
@@ -364,9 +350,11 @@ function lrl_updateLandingResult()
 			lrl_landingRate = gVS
 			lrl_gearKgM = calcMax_lrl_gearForce() 
 			lrl_landingG = lrl_gearKgM / lrl_Weight
+			lrl_firsttouchG = lrl_landingG
 			pushValue_lrl_geez(lrl_landingG,lrl_localtime)
 		end
 		lrl_populatePopupStats()
+		lrl_touchedat = lrl_localtime
 		lrl_popupState = lrl_LANDED
 		lrl_showUntil = osts + lrl_SECONDS_TO_DISPLAY
 		lrl_logDisplayOn = true
@@ -377,6 +365,10 @@ function lrl_updateLandingResult()
 		lrl_gearKgM = calcMax_lrl_gearForce()
 		pushValue_lrl_geez(lrl_gearKgM / lrl_Weight,lrl_localtime)
 		lrl_landingG = calcAvg_lrl_geez()
+		-- Get initial touch - the max of the first 3 readings
+		if lrl_ReadMore < 3 then
+			lrl_firsttouchG = calcMax_lrl_recent() / lrl_Weight
+		end
 		lrl_ReadMore = lrl_ReadMore + 1
 		lrl_populatePopupStats()
 	end
@@ -390,6 +382,7 @@ function lrl_updateLandingResult()
 			lrl_popupText[3] = "Slowly lower the steering"
 		else
 			lrl_popupState = lrl_STEERINGDN
+			lrl_alltouchG =  calcMax_lrl_recent() / lrl_Weight
 		    lrl_populatePopupStats()
 			lrl_populatePopupStats2()
 		end
