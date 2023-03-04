@@ -13,6 +13,8 @@ There is also is an after-landing function to allow for nose-slams, bounce and r
 
 ### Usually, the aircraft is still flying throughout the landing!
 ![Melted Butter](https://github.com/EdmundStoner/LandingRate/blob/main/butter.png "Butter")
+![Melted Butter Graph](https://github.com/EdmundStoner/LandingRate/blob/main/ButterGraph.png "Butter Graph")
+
 
 
 
