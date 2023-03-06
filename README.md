@@ -15,7 +15,7 @@ The after-landing functions will allow nose-slams, bounce and re-landings to be 
 ![Melted Butter](https://github.com/EdmundStoner/LandingRate/blob/main/butter.png "Butter")
 ![Melted Butter Graph](https://github.com/EdmundStoner/LandingRate/blob/main/ButterGraph.png "Butter Graph")
 
-##User Settings:
+## User Settings:
 
 There are settings that are located in the beginning of the LandingRateMx.lua file for changing the Pop up display position, fonts, bordercolor and borderwidth, how long to show the popup or not to show it at all and if you would like to record the landing to the logfiles.  BEWARE OF THE DRAGONS
 
@@ -30,7 +30,7 @@ I will update the changelog and this ReadMe to explain some of the changes.
 Use the ISSUE button, for bugs and suggestions
 
 
-#Warning: Technical Alert - MATH
+# Warning: Technical Alert - MATH
 
 On the debug screen, while the aircraft is stopped, in calm weather, look at the values for the weight and the force on the gear, they should be the same (well, pretty close). Check this weight against the weight in X-Plane's Weight and Balance window. Even though all of these values are created by X-Plane, they are not all exactly the same(?).
 
