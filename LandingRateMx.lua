@@ -10,9 +10,9 @@ lrl_YPCT = 0.8 -- lrl_YPCT: 0.0 = bottom edge, 1.0 = top edge
 -- This defines the font size. Available sizes = 10, 12 or 18.
 lrl_FONTSIZE = 18
 -- The number of seconds to display the on-screen popup, or -1 for no popup.
-lrl_SECONDS_TO_DISPLAY = 60
+lrl_SECONDS_TO_DISPLAY = 20
 -- Border Width
-lrl_displayBorder = 12
+lrl_displayBorder = 2
 -- Border Color {red, green,blue} each are from 0 to 1
 lrl_BorderColor = {0.9, 0.5, 0.0}
 -- Set lrl_SHOW_TIMER to "true" (show) or "false" (don't show) the float timer
@@ -22,7 +22,7 @@ lrl_POSTRATE = true
 -- set catIII to the hieght that the Landing is being set
 lrl_catIII = 15
 -- set ShowDebug to "activate"  or "deactivate" to show the Debug Menu when loaded
-lrl_ShowDebug = "activate"
+lrl_ShowDebug = "deactivate"
 --
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
 --
