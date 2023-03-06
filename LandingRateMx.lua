@@ -2,7 +2,7 @@
 -- This file is a modification of Dan Berry`s original
 -- by Edmund Stoner 03/02/2023
 -- Landing Rate Mx 
-lrl_Version = "ES V0.8"
+lrl_Version = "ES V0.85"
 --
 -- Define the positioning of the window from 0% (0.0) to 100% (1.0)
 lrl_XPCT = 0.5 --  0.0 = left edge, 1.0 = right edge
@@ -10,18 +10,19 @@ lrl_YPCT = 0.8 -- lrl_YPCT: 0.0 = bottom edge, 1.0 = top edge
 -- This defines the font size. Available sizes = 10, 12 or 18.
 lrl_FONTSIZE = 18
 -- The number of seconds to display the on-screen popup, or -1 for no popup.
-lrl_SECONDS_TO_DISPLAY = 20
+lrl_SECONDS_TO_DISPLAY = 60
 -- Border Width
-lrl_displayBorder = 2
+lrl_displayBorder = 12
 -- Border Color {red, green,blue} each are from 0 to 1
 lrl_BorderColor = {0.9, 0.5, 0.0}
 -- Set lrl_SHOW_TIMER to "true" (show) or "false" (don't show) the float timer
 lrl_SHOW_TIMER = true
--- Set lrl_POSTRATE to "true" (write the rate to a file) or "false" (don't write)
+-- Set lrl_POSTRATE to "true" (write to the log files) or "false" (don't write)
 lrl_POSTRATE = true
 -- set catIII to the hieght that the Landing is being set
 lrl_catIII = 15
---
+-- set ShowDebug to "activate"  or "deactivate" to show the Debug Menu when loaded
+lrl_ShowDebug = "activate"
 --
 ----------- THAR BE DRAGONS BEYOND THIS POINT -----------
 --
@@ -41,6 +42,7 @@ dataref("lrl_boolBeaconOn", "sim/cockpit2/switches/beacon_on", "readonly")
 dataref("lrl_YN", "sim/flightmodel/forces/fnrml_gear", "readonly") --the landing gear Y forces in Newtons 
 dataref("lrl_ZN", "sim/flightmodel/forces/faxil_gear", "readonly") --the landing gear Z forces in Newtons
 dataref("lrl_Weight", "sim/flightmodel/weight/m_total", "readonly") --the Total weight of the craft
+dataref("lrl_spd", "sim/flightmodel/position/indicated_airspeed", "readonly")
 
 -- Thanks to [erhardma] for adding VR support!
 dataref("lrl_vr_enabled", "sim/graphics/VR/enabled", "readonly")
@@ -143,6 +145,23 @@ function new_table(tn, samples)
 	code = code .. "    end\n"
 	code = code .. "    return str\n"
 	code = code .. "end\n"
+	code = code .. "function csvGStringOf_" .. tn .. "()\n"
+	code = code .. "    local str = ''\n"
+	code = code .. "    if #values_axis_" .. tn .. " > 0 then\n"
+	code = code .. "        for i = " .. samples .. ", 1, -1 do\n"
+	code = code .. "            if values_axis_" .. tn .. "[i] ~= nil then\n"
+	code = code .. "            if values_axis_" .. tn .. "[i] ~= 0 then\n"
+	code = code .. "	            str = str .. string.format('%.8f', values_axis_" .. tn .. "[i] / lrl_Weight)\n"
+	code = code .. "    	        if i ~= 1 then\n"
+	code = code .. "        	    	str = str ..','\n"	
+	code = code .. "        	    end\n"
+	code = code .. "            end\n"
+	code = code .. "            end\n"
+	code = code .. "        end\n"
+	code = code .. "        str = str .. '\\n'\n"	
+	code = code .. "    end\n"
+	code = code .. "    return str\n"
+	code = code .. "end\n"
 	--
 	code = code .. "function calcTime_" .. tn .. "()\n"
 	code = code .. "    local d = 0\n"
@@ -186,6 +205,7 @@ function lrl_Reset()
 	lrl_alltouchG = -0.01
 	lrl_touchedat = 0
 	lrl_ReadMore = 0
+	lrl_onFloat = false
 	--Display
 	lrl_logDisplayOn = false
 	lrl_popupState = lrl_ARMED
@@ -226,7 +246,8 @@ function lrl_postLandingRateMx()
 	end
 	logMsg(string.format("%s Landing Rate: %s", d, s))
 	append2log("LandingRate.log",string.format("%s,%s,%s\n", d, PLANE_ICAO, s) )
-	append2log("LandingRate.csv", string.format("%s,%f,%s", d, calcAvgFrom_lrl_gearForce(lrl_touchedat),  csvStringOf_lrl_gearForce()))
+	append2log("LandingRate.csv",string.format("%s,%s",d,csvStringOf_lrl_gearForce()))
+	append2log("LandingRateG.csv",string.format("%s,%s",d,csvGStringOf_lrl_gearForce()))
 	end
 -- Grades the flare and creates lines 1,2 and 5 for the display and logfile (log uses line 5)
 function lrl_populatePopupStats()
@@ -287,12 +308,17 @@ function lrl_showDebug(aglAvg, aglMidpoint, aglTimeslice, gVS)
 			graphics.set_color(1.0, 0.0, 0.0, 1.0)
 		end
 		-- line 1
-		draw_string_Helvetica_18(100, 140,
-			string.format("lrl_landingRate: %s | lrl_noseRate: %s | lrl_floatFinal: %s",
-				tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ))
+		if lrl_landingRate == nil then
+			draw_string_Helvetica_18(100, 140,
+				string.format("AGL: %.1f ft.   AirSpeed: %.1f Kph ",lrl_agl * 3.28 , lrl_spd))
+		else
+			draw_string_Helvetica_18(100, 140,
+				string.format("lrl_landingRate: %s | lrl_noseRate: %s | lrl_floatFinal: %s|spd %.1f|%d|%s" ,
+					tostring(lrl_landingRate), tostring(lrl_noseRate), tostring(lrl_floatFinal) ,lrl_spd, lrl_ReadMore, tostring(lrl_onFloat)))
+		end	
 		-- line 2			    
 		draw_string_Helvetica_18(100, 120,
-			string.format("Total Weight %.1f| Force on Gear: %.1f k/m | G's Gear: %.2f | Max Gear force: %.1f", 
+			string.format("Weight %.1f| Force/Gear: %.1f k/m | G's Gear: %.2f | Max Force: %.1f", 
 				lrl_Weight, ((lrl_YN + lrl_ZN) / 10), ((lrl_YN + lrl_ZN) / 10) / lrl_Weight, (calcMax_lrl_gearForce() or .01) ))
 		--	line 3	    
 			draw_string_Helvetica_18(100, 100,
@@ -324,6 +350,7 @@ function lrl_updateLandingResult()
 	local aglTimeslice = calcTime_lrl_agl()
 	local aglMidpoint = lrl_agl - aglAvg
 	local gVS = (aglMidpoint / (aglTimeslice / 2)) * 196.85
+
 	-- Show debugging information screen
 	lrl_showDebug(aglAvg, aglMidpoint, aglTimeslice, gVS)
 	-- Flying ABOVE CATIIIB Height (usually 15M) reset all of the landing stats and turn off the display
@@ -361,17 +388,22 @@ function lrl_updateLandingResult()
 	end
 	-- After landing readings
 	--   Check and record any bounces that are larger G forces(lrl_landingG) and forces on the gear (lrl_gearKgM)
-	if lrl_popupState == lrl_LANDED and lrl_landingG and lrl_ReadMore < lrl_READAFTERLANDING then 
+	if lrl_popupState >= lrl_LANDED and lrl_landingG and lrl_ReadMore < lrl_READAFTERLANDING then 
 		lrl_gearKgM = calcMax_lrl_gearForce()
 		pushValue_lrl_geez(lrl_gearKgM / lrl_Weight,lrl_localtime)
 		lrl_landingG = calcAvg_lrl_geez()
 		-- Get initial touch - the max of the first 3 readings
-		if lrl_ReadMore < 3 then
-			lrl_firsttouchG = calcMax_lrl_recent() / lrl_Weight
-		end
+		if lrl_ReadMore < 3 then lrl_firsttouchG = calcMax_lrl_recent() / lrl_Weight end
 		lrl_ReadMore = lrl_ReadMore + 1
 		lrl_populatePopupStats()
 	end
+
+	-- FULLY LANDED write stats2 On floats only record 300 readings
+	if lrl_spd < 10 and lrl_onFloat then
+		lrl_onFloat = false
+		lrl_populatePopupStats2()	
+	end
+
 	--LANDED BUT NOT ALL WHEELS DOWN
 	-- If we have wing wheels down but not the nose wheel, give the pilot some feedback.
 	-- Otherwise, give the nose rate, reset the Display on timer and then move onto the final STEERINGDN state.
@@ -384,12 +416,15 @@ function lrl_updateLandingResult()
 			lrl_popupState = lrl_STEERINGDN
 			lrl_alltouchG =  calcMax_lrl_recent() / lrl_Weight
 		    lrl_populatePopupStats()
-			lrl_populatePopupStats2()
+			if lrl_ReadMore < 5 then		-- if the all down happens too quick you must not have a regular gear configuration
+				lrl_onFloat = true
+			else
+				lrl_populatePopupStats2()	
+			end
 		end
 		lrl_showUntil = osts + lrl_SECONDS_TO_DISPLAY
 		lrl_logDisplayOn = true
 	end
-	-- FULLY LANDED
 	-- If we're in a LANDED state (or later) and we have a float time marker,
 	-- and the final rate isn't determined yet, then find it.
 	if lrl_popupState >= lrl_LANDED and lrl_floatTimer > 0 and lrl_floatFinal == 0 then
@@ -507,7 +542,9 @@ function lrl_loopCallback()
 	if lrl_popupState ~= lrl_ARMED and os.clock() > lrl_showUntil then
 		lrl_logDisplayOn = false
 		if lrl_landingRate == 1 then lrl_landingRate = nil end
-		if lrl_popupState == lrl_STEERINGDN then lrl_popupState = lrl_STANDBY end
+		if lrl_popupState == lrl_STEERINGDN then 
+			lrl_popupState = lrl_STANDBY 
+		end
 		lrl_vr_showWindow = 0 -- erhardma
 	end
 
@@ -564,4 +601,4 @@ do_every_draw('lrl_loopCallback()')
 
 do_often("lrl_checkForVR()")
 
-add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", "deactivate")
+add_macro("Landing RateMx: Show Debug Info", "lrl_DEBUG = true", "lrl_DEBUG = false", lrl_ShowDebug)

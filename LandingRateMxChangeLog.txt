@@ -1,19 +1,23 @@
-Change on 2032-03-04
+Change on 2023-03-04
+    -- modified the after readings to work with floats
+    -- added the landingrateg.csv to record the G's of the landing
+    -- added the debug activation to the user settings
+Change on 2023-03-04
     -- Added a csv log currently formatted: Timestamp,the calculated average, ,,the array of the landing,,
     -- re coded some averaging functions
 
 Change on 2023-03-03
     -- took out error checking, never saw a difference of more than 1 millionth of a g
     -- added a gforce average after any wheel touches until the instance that all wheels touch
-    
+
 Change on 2023-03-02
     -- Added some error checking
     -- Reworked some logging data G errors will show both dataref and pre display values
-    -- Added border color 
+    -- Added border color
     -- changed the table classes to allow creation of data to csv strings for debugging
     -- created CattIIIB height variable to easily control resets for a new landing record (currently 15M)
     -- fixed the recording of nose slams, bounces and re-landing
-    
+
 Change on 2023-03-01
     -- Cleaned up the code and reworked the comments
 
@@ -21,17 +25,17 @@ Change on 2023-02-26
     -- used the gear forces divided by the weight to generate the reading of G's
     -- added after landing readings to make sure that each bounce is analyzed
 
-Change from original on 2023-2-25 
-    -- after the aircraft is below 15M AGL 
-        the Gforce dataref reading will be captured every frame until 
+Change from original on 2023-2-25
+    -- after the aircraft is below 15M AGL
+        the Gforce dataref reading will be captured every frame until
         xplane has determined that a wheel hit the ground
         Gforce was previously the average of last 30 readings, mostly < 1G,
         and the greater your descent, the lower your G's
         Changed to read the maximum Gforce reading of the last 10 readings
     -- Added an indicator of lb force on the gear using the xplane datarefs for
-        downward gear newtons converter to lbf, defined as the gravitational 
+        downward gear newtons converter to lbf, defined as the gravitational
         force exerted on a mass of one pound under the condition of standard gravity (9.80665 m/s2).
-    -- Developed the G's on the gear by dividing the force on the gear 
-        by the weight of the aircraft 
- 
-        
+    -- Developed the G's on the gear by dividing the force on the gear
+        by the weight of the aircraft
+
+
