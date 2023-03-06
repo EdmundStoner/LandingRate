@@ -29,8 +29,7 @@ I will update the changelog and this ReadMe to explain some of the changes.
 
 Use the ISSUE button, for bugs and suggestions
 
-
-# Warning: Technical Alert - MATH
+![Math Alert](https://github.com/EdmundStoner/LandingRate/blob/main/MathWarning.png "Math Warning")
 
 On the debug screen, while the aircraft is stopped, in calm weather, look at the values for the weight and the force on the gear, they should be the same (well, pretty close). Check this weight against the weight in X-Plane's Weight and Balance window. Even though all of these values are created by X-Plane, they are not all exactly the same(?).
 
